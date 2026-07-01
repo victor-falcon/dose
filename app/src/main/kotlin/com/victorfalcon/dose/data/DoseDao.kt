@@ -76,4 +76,12 @@ interface DoseDao {
 
     @Query("UPDATE dose_occurrences SET status = :status, takenAt = :takenAt WHERE id = :id")
     suspend fun updateOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?)
+
+    // Pending doses due before :until (includes overdue) -> the alarm scheduler arms these.
+    @Query("SELECT * FROM dose_occurrences WHERE status = 'PENDING' AND scheduledAt < :until ORDER BY scheduledAt")
+    suspend fun getPendingOccurrencesUntil(until: LocalDateTime): List<DoseOccurrence>
+
+    // Backstop MISSED sweep. 'PENDING'/'MISSED' must match the DoseStatus enum names.
+    @Query("UPDATE dose_occurrences SET status = 'MISSED' WHERE status = 'PENDING' AND scheduledAt < :threshold")
+    suspend fun markMissedBefore(threshold: LocalDateTime): Int
 }

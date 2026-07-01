@@ -120,6 +120,28 @@ class DoseDaoTest {
         assertEquals(at, dose.takenAt)
     }
 
+    @Test fun `pending sweep queries respect the cutoff and threshold`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Metformin"),
+            Schedule(
+                medicationId = 0,
+                type = ScheduleType.DAILY_TIMES,
+                startDate = today,
+                times = listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)),
+            ),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 1) // today + tomorrow = 4
+
+        // Only today's two doses fall before tomorrow midnight.
+        val untilTomorrow = LocalDateTime.of(today.plusDays(1), LocalTime.MIN)
+        assertEquals(2, repo.getPendingOccurrencesUntil(untilTomorrow).size)
+
+        // Threshold at noon flips only the 08:00 dose; the rest stay pending.
+        val missed = repo.markMissedBefore(LocalDateTime.of(today, LocalTime.NOON))
+        assertEquals(1, missed)
+        assertEquals(3, repo.getPendingOccurrencesUntil(untilTomorrow.plusDays(1)).size)
+    }
+
     @Test fun `marking an occurrence taken persists status and takenAt`() = runTest {
         val medId = repo.saveMedicationWithSchedule(
             Medication(name = "Aspirin"),

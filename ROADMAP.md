@@ -15,7 +15,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 1 | Persistence layer (Room + DataStore + repositories) | ✅ Done |
 | 2 | Create / edit a medication | ✅ Done |
 | 3 | Today screen (mark taken/skip) | ✅ Done |
-| 4 | Reminder engine (alarms + notifications + workers) | ▢ |
+| 4 | Reminder engine (alarms + notifications + workers) | ✅ Done¹ |
 | 5 | History & adherence | ▢ |
 | 6 | Medication management & occurrence upkeep | ▢ |
 | 7 | Settings | ▢ |
@@ -64,7 +64,11 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Empty state ("no meds yet → add one").
 - **Verify:** add med → appears on Today at its times → mark taken → status persists.
 
-## Phase 4 — Reminder engine
+## Phase 4 — Reminder engine ✅
+
+> ¹ Code-complete + unit-tested (policy, sweep queries) and the Hilt/APK build is green.
+> The live check (dose fires ~1 min out, notification actions, reboot re-arm) needs a
+> device/emulator — pending manual run. Policy: nag on time, re-nag hourly, MISSED at 3h.
 
 **Goal:** the app reminds you on time and you can act from the notification. *(The heart.)*
 - Notification channel(s) (high importance for reminders).

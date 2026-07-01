@@ -10,6 +10,7 @@ import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import com.victorfalcon.dose.domain.model.ScheduleType
 import com.victorfalcon.dose.domain.repository.MedicationRepository
+import com.victorfalcon.dose.reminder.AlarmScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -64,6 +65,7 @@ fun MedEditorUiState.toSchedule(medicationId: Long = 0, id: Long = 0): Schedule 
 class MedEditorViewModel @Inject constructor(
     private val repository: MedicationRepository,
     private val materializer: OccurrenceMaterializer,
+    private val alarmScheduler: AlarmScheduler,
 ) : ViewModel() {
 
     var uiState by mutableStateOf(MedEditorUiState())
@@ -110,6 +112,7 @@ class MedEditorViewModel @Inject constructor(
                 state.toSchedule(medicationId, scheduleId),
             )
             repository.getSchedule(savedMedId)?.let { materializer.materialize(it) }
+            alarmScheduler.syncUpcoming() // arm exact alarms for the new/updated occurrences
             onSaved()
         }
     }

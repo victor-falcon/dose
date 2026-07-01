@@ -63,4 +63,11 @@ class RoomMedicationRepository @Inject constructor(
             ),
         )
     }
+
+    override suspend fun getOccurrence(id: Long): DoseOccurrence? = dao.getOccurrence(id)
+
+    override suspend fun getPendingOccurrencesUntil(until: LocalDateTime): List<DoseOccurrence> =
+        dao.getPendingOccurrencesUntil(until)
+
+    override suspend fun markMissedBefore(threshold: LocalDateTime): Int = dao.markMissedBefore(threshold)
 }

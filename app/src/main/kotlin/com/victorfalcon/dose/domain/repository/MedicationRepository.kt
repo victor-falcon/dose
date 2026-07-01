@@ -31,4 +31,12 @@ interface MedicationRepository {
 
     /** Record an ad-hoc taken dose for a PRN medication. */
     suspend fun logAsNeededDose(medicationId: Long, at: LocalDateTime)
+
+    suspend fun getOccurrence(id: Long): DoseOccurrence?
+
+    /** Pending doses due before [until] (includes overdue), for the alarm scheduler. */
+    suspend fun getPendingOccurrencesUntil(until: LocalDateTime): List<DoseOccurrence>
+
+    /** Bulk-flip still-pending doses older than [threshold] to MISSED; returns the count. */
+    suspend fun markMissedBefore(threshold: LocalDateTime): Int
 }

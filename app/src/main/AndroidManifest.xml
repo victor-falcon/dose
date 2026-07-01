@@ -26,12 +26,17 @@
             </intent-filter>
         </activity>
 
-        <!-- TODO(reminders): register when implemented
-             - AlarmReceiver (exported=false): fires at the exact scheduled time,
-               builds the rich notification (Taken / Snooze / Skip).
-             - BootReceiver: RECEIVE_BOOT_COMPLETED -> reschedule pending alarms.
-             - Hilt WorkManager: remove the default initializer and provide our
-               HiltWorkerFactory (androidx.startup node below). -->
+        <!-- One receiver for all reminder broadcasts: exact-alarm fires + notification
+             actions (sent by explicit intent, no filter needed) and BOOT_COMPLETED
+             (needs exported=true to receive the system broadcast). -->
+        <receiver
+            android:name=".reminder.ReminderReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
