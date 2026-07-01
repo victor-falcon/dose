@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.DoseStatus
@@ -113,4 +114,32 @@ interface DoseDao {
     // Backstop MISSED sweep. 'PENDING'/'MISSED' must match the DoseStatus enum names.
     @Query("UPDATE dose_occurrences SET status = 'MISSED' WHERE status = 'PENDING' AND scheduledAt < :threshold")
     suspend fun markMissedBefore(threshold: LocalDateTime): Int
+
+    // --- Backup / restore ---
+    @Query("SELECT * FROM medications") suspend fun getAllMedications(): List<Medication>
+
+    @Query("SELECT * FROM schedules") suspend fun getAllSchedules(): List<Schedule>
+
+    @Query("SELECT * FROM dose_occurrences") suspend fun getAllOccurrences(): List<DoseOccurrence>
+
+    @Query("DELETE FROM medications") suspend fun deleteAllMedications() // cascades to schedules + occurrences
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedications(medications: List<Medication>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSchedules(schedules: List<Schedule>)
+
+    /** Replace the whole database in one transaction (import). FK order: meds -> schedules -> occurrences. */
+    @Transaction
+    suspend fun replaceAll(
+        medications: List<Medication>,
+        schedules: List<Schedule>,
+        occurrences: List<DoseOccurrence>,
+    ) {
+        deleteAllMedications()
+        insertMedications(medications)
+        insertSchedules(schedules)
+        insertOccurrences(occurrences)
+    }
 }

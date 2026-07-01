@@ -26,6 +26,10 @@
     <string name="settings_notification_settings">Ajustes de notificaciones</string>
     <string name="settings_exact_alarm">Permiso de alarmas exactas</string>
     <string name="unit_minutes">%1$d min</string>
+    <string name="settings_backup">Copia de seguridad</string>
+    <string name="action_export">Exportar</string>
+    <string name="action_import">Importar</string>
+    <string name="import_confirm_message">Importar reemplaza todos los datos actuales por los de la copia. ¿Continuar?</string>
 
     <!-- Gestión de medicamentos -->
     <string name="action_edit">Editar</string>

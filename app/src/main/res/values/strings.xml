@@ -26,6 +26,10 @@
     <string name="settings_notification_settings">Notification settings</string>
     <string name="settings_exact_alarm">Exact alarm permission</string>
     <string name="unit_minutes">%1$d min</string>
+    <string name="settings_backup">Backup</string>
+    <string name="action_export">Export</string>
+    <string name="action_import">Import</string>
+    <string name="import_confirm_message">Importing replaces all current data with the backup. Continue?</string>
 
     <!-- Medication management -->
     <string name="action_edit">Edit</string>

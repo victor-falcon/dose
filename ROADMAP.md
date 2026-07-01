@@ -19,7 +19,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 5 | History & adherence | ✅ Done² |
 | 6 | Medication management & occurrence upkeep | ✅ Done |
 | 7 | Settings | ✅ Done |
-| 8 | Backup / export (JSON) | ▢ |
+| 8 | Backup / export (JSON) | ✅ Done³ |
 | 9 | Glance home-screen widget | ▢ |
 | 10 | Release polish | ▢ |
 
@@ -114,7 +114,11 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Shortcuts to system notification settings / exact-alarm permission.
 - **Verify:** toggles persist (DataStore) and take effect.
 
-## Phase 8 — Backup / export (JSON)
+## Phase 8 — Backup / export (JSON) ✅
+
+> ³ Export + replace-import via SAF, JSON round-trip unit-tested. Merge import was
+> scoped out for v1 (a personal restore is "replace"); revisit if multi-source merging
+> is ever needed.
 
 **Goal:** local-first safety net (no account = data-loss risk).
 - Export whole DB → JSON file via SAF (document picker), `kotlinx.serialization`.
