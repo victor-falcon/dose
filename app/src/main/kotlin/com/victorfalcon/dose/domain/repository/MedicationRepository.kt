@@ -2,6 +2,7 @@ package com.victorfalcon.dose.domain.repository
 
 import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.DoseStatus
+import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import kotlinx.coroutines.flow.Flow
@@ -17,8 +18,17 @@ interface MedicationRepository {
 
     fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>>
 
+    /** Doses joined with medication info in [start, end), for Today / History. */
+    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>>
+
+    /** Active PRN (as-needed) medications, which have no scheduled occurrences. */
+    fun observeAsNeededMedications(): Flow<List<Medication>>
+
     /** Insert or update a medication and its single schedule; returns the medication id. */
     suspend fun saveMedicationWithSchedule(medication: Medication, schedule: Schedule): Long
 
     suspend fun setOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?)
+
+    /** Record an ad-hoc taken dose for a PRN medication. */
+    suspend fun logAsNeededDose(medicationId: Long, at: LocalDateTime)
 }

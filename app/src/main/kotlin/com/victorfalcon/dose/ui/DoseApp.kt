@@ -29,6 +29,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
+import com.victorfalcon.dose.ui.today.TodayScreen
 import kotlinx.serialization.Serializable
 
 // Top-level destinations (the two bottom-bar tabs). @Serializable so the back
@@ -109,7 +110,9 @@ fun DoseApp() {
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
             entryProvider = entryProvider {
-                entry<Today> { PlaceholderScreen("Today") }
+                entry<Today> {
+                    TodayScreen(onAddMedication = { backStack.add(MedEditor()) })
+                }
                 entry<History> { PlaceholderScreen("History") }
                 entry<MedEditor> { key ->
                     MedEditorScreen(

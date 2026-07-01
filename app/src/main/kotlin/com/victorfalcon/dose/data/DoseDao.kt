@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.DoseStatus
+import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +43,30 @@ interface DoseDao {
 
     @Query("SELECT * FROM dose_occurrences WHERE scheduledAt >= :start AND scheduledAt < :end ORDER BY scheduledAt")
     fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>>
+
+    // Doses joined with their medication name/dosage, for Today and History.
+    @Query(
+        """
+        SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
+               o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+        FROM dose_occurrences o
+        JOIN medications m ON m.id = o.medicationId
+        WHERE o.scheduledAt >= :start AND o.scheduledAt < :end
+        ORDER BY o.scheduledAt
+        """,
+    )
+    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>>
+
+    // ponytail: 'AS_NEEDED' literal must match ScheduleType.AS_NEEDED.name (stored via converter).
+    @Query(
+        """
+        SELECT m.* FROM medications m
+        JOIN schedules s ON s.medicationId = m.id
+        WHERE m.active = 1 AND s.type = 'AS_NEEDED'
+        ORDER BY m.name COLLATE NOCASE
+        """,
+    )
+    fun observeAsNeededMedications(): Flow<List<Medication>>
 
     @Query("SELECT * FROM dose_occurrences WHERE medicationId = :medicationId AND scheduledAt >= :from ORDER BY scheduledAt")
     suspend fun getOccurrencesFrom(medicationId: Long, from: LocalDateTime): List<DoseOccurrence>

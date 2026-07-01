@@ -86,3 +86,14 @@ data class DoseOccurrence(
     val status: DoseStatus = DoseStatus.PENDING,
     val takenAt: LocalDateTime? = null,
 )
+
+/** A dose joined with its medication, for display on Today / History. Not a table. */
+data class DoseView(
+    val occurrenceId: Long,
+    val medicationId: Long,
+    val name: String,
+    val dosage: String?,
+    val scheduledAt: LocalDateTime,
+    val status: DoseStatus,
+    val takenAt: LocalDateTime?,
+)

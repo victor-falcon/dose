@@ -14,7 +14,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 0 | Foundation: toolchain, domain model, nav skeleton | ✅ Done |
 | 1 | Persistence layer (Room + DataStore + repositories) | ✅ Done |
 | 2 | Create / edit a medication | ✅ Done |
-| 3 | Today screen (mark taken/skip) | ▢ |
+| 3 | Today screen (mark taken/skip) | ✅ Done |
 | 4 | Reminder engine (alarms + notifications + workers) | ▢ |
 | 5 | History & adherence | ▢ |
 | 6 | Medication management & occurrence upkeep | ▢ |
@@ -55,7 +55,7 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Form validation (name required, ≥1 time for scheduled types, sane cycle/interval).
 - **Verify:** create each schedule type; confirm rows + generated occurrences.
 
-## Phase 3 — Today screen
+## Phase 3 — Today screen ✅
 
 **Goal:** the daily core loop works end to end (without notifications yet).
 - `TodayViewModel` (Hilt) exposing today's occurrences grouped by time + status.

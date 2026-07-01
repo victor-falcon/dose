@@ -90,6 +90,36 @@ class DoseDaoTest {
         assertTrue(occurrences.zipWithNext().all { (a, b) -> !a.scheduledAt.isAfter(b.scheduledAt) })
     }
 
+    @Test fun `doses view joins the medication name and dosage`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Metformin", dosage = "500 mg"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = today, times = listOf(LocalTime.of(9, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 0)
+
+        val start = LocalDateTime.of(today, LocalTime.MIN)
+        val dose = repo.observeDosesBetween(start, start.plusDays(1)).first().single()
+        assertEquals("Metformin", dose.name)
+        assertEquals("500 mg", dose.dosage)
+        assertEquals(medId, dose.medicationId)
+    }
+
+    @Test fun `logging a PRN dose records a taken occurrence and lists the med as needed`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Ibuprofen"),
+            Schedule(medicationId = 0, type = ScheduleType.AS_NEEDED, startDate = today),
+        )
+        assertEquals("Ibuprofen", repo.observeAsNeededMedications().first().single().name)
+
+        val at = LocalDateTime.of(today, LocalTime.of(14, 30))
+        repo.logAsNeededDose(medId, at)
+
+        val start = LocalDateTime.of(today, LocalTime.MIN)
+        val dose = repo.observeDosesBetween(start, start.plusDays(1)).first().single()
+        assertEquals(DoseStatus.TAKEN, dose.status)
+        assertEquals(at, dose.takenAt)
+    }
+
     @Test fun `marking an occurrence taken persists status and takenAt`() = runTest {
         val medId = repo.saveMedicationWithSchedule(
             Medication(name = "Aspirin"),

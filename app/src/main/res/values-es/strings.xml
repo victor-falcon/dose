@@ -13,6 +13,13 @@
     <string name="dose_skip">Omitir</string>
     <string name="dose_missed">Perdida</string>
 
+    <!-- Hoy -->
+    <string name="today_as_needed">Según necesidad</string>
+    <string name="today_empty_title">Aún no hay medicamentos</string>
+    <string name="today_empty_subtitle">Añade el primero para verlo aquí.</string>
+    <string name="action_undo">Deshacer</string>
+    <string name="action_log_now">Registrar ahora</string>
+
     <!-- Editor de medicamento -->
     <string name="editor_title_edit">Editar medicamento</string>
     <string name="action_save">Guardar</string>

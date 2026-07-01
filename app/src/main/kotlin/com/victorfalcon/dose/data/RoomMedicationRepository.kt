@@ -2,6 +2,7 @@ package com.victorfalcon.dose.data
 
 import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.DoseStatus
+import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import com.victorfalcon.dose.domain.repository.MedicationRepository
@@ -25,6 +26,12 @@ class RoomMedicationRepository @Inject constructor(
     override fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>> =
         dao.observeOccurrencesBetween(start, end)
 
+    override fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>> =
+        dao.observeDosesBetween(start, end)
+
+    override fun observeAsNeededMedications(): Flow<List<Medication>> =
+        dao.observeAsNeededMedications()
+
     // ponytail: no explicit @Transaction. Single-writer local app; wrap both inserts
     // in a DAO @Transaction only if a partial write ever leaves a med without a schedule.
     override suspend fun saveMedicationWithSchedule(medication: Medication, schedule: Schedule): Long {
@@ -41,4 +48,19 @@ class RoomMedicationRepository @Inject constructor(
 
     override suspend fun setOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?) =
         dao.updateOccurrenceStatus(id, status, takenAt)
+
+    // ponytail: the unique (medicationId, scheduledAt) index means two PRN logs in the
+    // same second collide and the second is ignored. Not a real-world scenario for v1.
+    override suspend fun logAsNeededDose(medicationId: Long, at: LocalDateTime) {
+        dao.insertOccurrences(
+            listOf(
+                DoseOccurrence(
+                    medicationId = medicationId,
+                    scheduledAt = at,
+                    status = DoseStatus.TAKEN,
+                    takenAt = at,
+                ),
+            ),
+        )
+    }
 }
