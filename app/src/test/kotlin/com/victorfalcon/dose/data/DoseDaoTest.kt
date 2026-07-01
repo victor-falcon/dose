@@ -142,6 +142,43 @@ class DoseDaoTest {
         assertEquals(3, repo.getPendingOccurrencesUntil(untilTomorrow.plusDays(1)).size)
     }
 
+    @Test fun `deleting future pending keeps resolved history and only drops future pending`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Metformin"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = today, times = listOf(LocalTime.of(8, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 2) // today, +1, +2
+
+        // Freeze today's dose as taken.
+        val earliest = repo.observeMedicationDoses(medId).first().minByOrNull { it.scheduledAt }!!
+        repo.setOccurrenceStatus(earliest.occurrenceId, DoseStatus.TAKEN, LocalDateTime.of(today, LocalTime.of(8, 5)))
+
+        val deleted = repo.deleteFuturePendingOccurrences(medId, LocalDateTime.of(today.plusDays(1), LocalTime.MIN))
+        assertEquals(2, deleted) // the two future pending days
+
+        val remaining = repo.observeMedicationDoses(medId).first()
+        assertEquals(1, remaining.size)
+        assertEquals(DoseStatus.TAKEN, remaining.single().status) // frozen past survives
+    }
+
+    @Test fun `archiving hides the med from the active list but keeps its history`() = runTest {
+        val future = LocalDate.now().plusDays(2) // clearly ahead of the real clock archive() uses
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Ibuprofen"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = future, times = listOf(LocalTime.of(8, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = future, windowDays = 1) // 2 future pending
+        val first = repo.observeMedicationDoses(medId).first().first()
+        repo.setOccurrenceStatus(first.occurrenceId, DoseStatus.TAKEN, LocalDateTime.now())
+
+        repo.archiveMedication(medId)
+
+        assertTrue(repo.observeActiveMedications().first().isEmpty())
+        val history = repo.observeMedicationDoses(medId).first()
+        assertTrue(history.any { it.status == DoseStatus.TAKEN }) // history kept
+        assertTrue(history.none { it.status == DoseStatus.PENDING }) // future pending stopped
+    }
+
     @Test fun `marking an occurrence taken persists status and takenAt`() = runTest {
         val medId = repo.saveMedicationWithSchedule(
             Medication(name = "Aspirin"),

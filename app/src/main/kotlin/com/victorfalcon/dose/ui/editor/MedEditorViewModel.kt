@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -111,6 +112,9 @@ class MedEditorViewModel @Inject constructor(
                 state.toMedication(medicationId),
                 state.toSchedule(medicationId, scheduleId),
             )
+            // Regenerate future only: drop future pending, re-materialize; past stays frozen.
+            // No-op delete on create; on edit it swaps the old schedule's future doses.
+            repository.deleteFuturePendingOccurrences(savedMedId, LocalDateTime.now())
             repository.getSchedule(savedMedId)?.let { materializer.materialize(it) }
             alarmScheduler.syncUpcoming() // arm exact alarms for the new/updated occurrences
             onSaved()

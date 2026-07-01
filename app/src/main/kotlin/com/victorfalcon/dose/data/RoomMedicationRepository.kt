@@ -20,8 +20,28 @@ class RoomMedicationRepository @Inject constructor(
 
     override suspend fun getMedication(id: Long): Medication? = dao.getMedication(id)
 
+    override fun observeMedication(id: Long): Flow<Medication?> = dao.observeMedication(id)
+
     override suspend fun getSchedule(medicationId: Long): Schedule? =
         dao.getScheduleForMedication(medicationId)
+
+    override fun observeSchedule(medicationId: Long): Flow<Schedule?> =
+        dao.observeScheduleForMedication(medicationId)
+
+    override suspend fun getActiveSchedules(): List<Schedule> = dao.getActiveSchedules()
+
+    override fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>> =
+        dao.observeMedicationDoses(medicationId)
+
+    override suspend fun deleteFuturePendingOccurrences(medicationId: Long, from: LocalDateTime): Int =
+        dao.deleteFuturePending(medicationId, from)
+
+    // ponytail: alarms for the deleted future doses aren't cancelled here; when they fire
+    // the receiver finds no occurrence and no-ops. syncUpcoming re-arms the current set.
+    override suspend fun archiveMedication(id: Long) {
+        dao.setMedicationActive(id, active = false)
+        dao.deleteFuturePending(id, LocalDateTime.now())
+    }
 
     override fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>> =
         dao.observeOccurrencesBetween(start, end)

@@ -14,7 +14,23 @@ interface MedicationRepository {
 
     suspend fun getMedication(id: Long): Medication?
 
+    fun observeMedication(id: Long): Flow<Medication?>
+
     suspend fun getSchedule(medicationId: Long): Schedule?
+
+    fun observeSchedule(medicationId: Long): Flow<Schedule?>
+
+    /** Schedules of all active medications, for maintenance materialization. */
+    suspend fun getActiveSchedules(): List<Schedule>
+
+    /** All doses for one medication, most recent first. */
+    fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>>
+
+    /** Delete future PENDING doses for a med (used to regenerate on edit / on archive). */
+    suspend fun deleteFuturePendingOccurrences(medicationId: Long, from: LocalDateTime): Int
+
+    /** Soft-delete: stop future doses but keep history. */
+    suspend fun archiveMedication(id: Long)
 
     fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>>
 

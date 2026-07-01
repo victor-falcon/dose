@@ -3,6 +3,7 @@ package com.victorfalcon.dose.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
@@ -26,19 +27,24 @@ import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
 import com.victorfalcon.dose.ui.history.HistoryScreen
+import com.victorfalcon.dose.ui.meds.MedDetailScreen
+import com.victorfalcon.dose.ui.meds.MedicationsScreen
 import com.victorfalcon.dose.ui.today.TodayScreen
 import kotlinx.serialization.Serializable
 
-// Top-level destinations (the two bottom-bar tabs). @Serializable so the back
+// Top-level destinations (the bottom-bar tabs). @Serializable so the back
 // stack survives config changes and process death.
 @Serializable private data object Today : NavKey
+@Serializable private data object Medications : NavKey
 @Serializable private data object History : NavKey
 
-// Detail destination: null id = create, non-null = edit (reused later for edit).
+// Detail destinations.
 @Serializable private data class MedEditor(val medicationId: Long? = null) : NavKey
+@Serializable private data class MedDetail(val medicationId: Long) : NavKey
 
 private enum class TopLevelTab(val key: NavKey, val icon: ImageVector, val labelRes: Int) {
     TODAY(Today, Icons.Filled.CheckCircle, R.string.nav_today),
+    MEDICATIONS(Medications, Icons.AutoMirrored.Filled.List, R.string.nav_medications),
     HISTORY(History, Icons.Filled.DateRange, R.string.nav_history),
 }
 
@@ -47,31 +53,22 @@ private enum class TopLevelTab(val key: NavKey, val icon: ImageVector, val label
 fun DoseApp() {
     val backStack = rememberNavBackStack(Today)
     val current = backStack.lastOrNull()
-    val isTopLevel = current is Today || current is History
+    val isTopLevel = current is Today || current is Medications || current is History
 
     Scaffold(
         topBar = {
             when (current) {
-                is MedEditor -> {
-                    val titleRes = if (current.medicationId != null) {
-                        R.string.editor_title_edit
-                    } else {
-                        R.string.action_add_medication
-                    }
-                    TopAppBar(
-                        title = { Text(stringResource(titleRes)) },
-                        navigationIcon = {
-                            IconButton(onClick = { backStack.removeLastOrNull() }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(R.string.action_back),
-                                )
-                            }
-                        },
-                    )
-                }
+                is MedEditor -> DetailTopBar(
+                    titleRes = if (current.medicationId != null) R.string.editor_title_edit else R.string.action_add_medication,
+                    onBack = { backStack.removeLastOrNull() },
+                )
+                is MedDetail -> DetailTopBar(titleRes = null, onBack = { backStack.removeLastOrNull() })
                 else -> {
-                    val titleRes = if (current == History) R.string.nav_history else R.string.nav_today
+                    val titleRes = when (current) {
+                        is History -> R.string.nav_history
+                        is Medications -> R.string.nav_medications
+                        else -> R.string.nav_today
+                    }
                     TopAppBar(title = { Text(stringResource(titleRes)) })
                 }
             }
@@ -96,7 +93,7 @@ fun DoseApp() {
             }
         },
         floatingActionButton = {
-            if (current == Today) {
+            if (current == Today || current == Medications) {
                 FloatingActionButton(onClick = { backStack.add(MedEditor()) }) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add_medication))
                 }
@@ -110,6 +107,12 @@ fun DoseApp() {
                 entry<Today> {
                     TodayScreen(onAddMedication = { backStack.add(MedEditor()) })
                 }
+                entry<Medications> {
+                    MedicationsScreen(
+                        onOpenMedication = { backStack.add(MedDetail(it)) },
+                        onAddMedication = { backStack.add(MedEditor()) },
+                    )
+                }
                 entry<History> { HistoryScreen() }
                 entry<MedEditor> { key ->
                     MedEditorScreen(
@@ -117,8 +120,31 @@ fun DoseApp() {
                         onDone = { backStack.removeLastOrNull() },
                     )
                 }
+                entry<MedDetail> { key ->
+                    MedDetailScreen(
+                        medicationId = key.medicationId,
+                        onEdit = { backStack.add(MedEditor(it)) },
+                        onArchived = { backStack.removeLastOrNull() },
+                    )
+                }
             },
             modifier = Modifier.padding(innerPadding),
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DetailTopBar(titleRes: Int?, onBack: () -> Unit) {
+    TopAppBar(
+        title = { titleRes?.let { Text(stringResource(it)) } },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.action_back),
+                )
+            }
+        },
+    )
 }

@@ -28,6 +28,12 @@ interface DoseDao {
     @Query("SELECT * FROM medications WHERE id = :id")
     suspend fun getMedication(id: Long): Medication?
 
+    @Query("SELECT * FROM medications WHERE id = :id")
+    fun observeMedication(id: Long): Flow<Medication?>
+
+    @Query("UPDATE medications SET active = :active WHERE id = :id")
+    suspend fun setMedicationActive(id: Long, active: Boolean)
+
     // --- Schedules ---
     @Insert suspend fun insertSchedule(schedule: Schedule): Long
 
@@ -35,6 +41,12 @@ interface DoseDao {
 
     @Query("SELECT * FROM schedules WHERE medicationId = :medicationId")
     suspend fun getScheduleForMedication(medicationId: Long): Schedule?
+
+    @Query("SELECT * FROM schedules WHERE medicationId = :medicationId")
+    fun observeScheduleForMedication(medicationId: Long): Flow<Schedule?>
+
+    @Query("SELECT s.* FROM schedules s JOIN medications m ON m.id = s.medicationId WHERE m.active = 1")
+    suspend fun getActiveSchedules(): List<Schedule>
 
     // --- Occurrences ---
     // IGNORE on the unique (medicationId, scheduledAt) index -> re-materializing is idempotent.
@@ -56,6 +68,23 @@ interface DoseDao {
         """,
     )
     fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>>
+
+    // All doses for one medication, most recent first (per-medication history).
+    @Query(
+        """
+        SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
+               o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+        FROM dose_occurrences o
+        JOIN medications m ON m.id = o.medicationId
+        WHERE o.medicationId = :medicationId
+        ORDER BY o.scheduledAt DESC
+        """,
+    )
+    fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>>
+
+    // Editing regenerates only future pending doses; past + resolved rows stay frozen.
+    @Query("DELETE FROM dose_occurrences WHERE medicationId = :medicationId AND status = 'PENDING' AND scheduledAt >= :from")
+    suspend fun deleteFuturePending(medicationId: Long, from: LocalDateTime): Int
 
     // ponytail: 'AS_NEEDED' literal must match ScheduleType.AS_NEEDED.name (stored via converter).
     @Query(

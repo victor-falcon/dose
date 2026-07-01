@@ -4,6 +4,7 @@
 
     <string name="nav_today">Hoy</string>
     <string name="nav_history">Historial</string>
+    <string name="nav_medications">Medicamentos</string>
 
     <string name="action_settings">Ajustes</string>
     <string name="action_add_medication">Añadir medicamento</string>
@@ -12,6 +13,12 @@
     <string name="dose_snooze">Posponer</string>
     <string name="dose_skip">Omitir</string>
     <string name="dose_missed">Perdida</string>
+
+    <!-- Gestión de medicamentos -->
+    <string name="action_edit">Editar</string>
+    <string name="action_archive">Archivar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="archive_confirm_message">¿Archivar este medicamento? Se conserva el historial, pero no se programarán nuevas dosis.</string>
 
     <!-- Historial -->
     <string name="history_adherence">Adherencia</string>

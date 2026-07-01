@@ -17,7 +17,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 3 | Today screen (mark taken/skip) | ✅ Done |
 | 4 | Reminder engine (alarms + notifications + workers) | ✅ Done¹ |
 | 5 | History & adherence | ✅ Done² |
-| 6 | Medication management & occurrence upkeep | ▢ |
+| 6 | Medication management & occurrence upkeep | ✅ Done |
 | 7 | Settings | ▢ |
 | 8 | Backup / export (JSON) | ▢ |
 | 9 | Glance home-screen widget | ▢ |
@@ -95,7 +95,11 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Per-medication history detail.
 - **Verify:** past occurrences render with correct taken/skipped/missed.
 
-## Phase 6 — Medication management & occurrence upkeep
+## Phase 6 — Medication management & occurrence upkeep ✅
+
+> Medications tab (list → detail with per-medication history, edit, archive). Editing
+> regenerates future-only; archive stops future doses and keeps history. Upkeep folded
+> into the hourly worker (materialize ahead); row pruning skipped (YAGNI) — data is tiny.
 
 **Goal:** editing never corrupts the past; the window keeps rolling.
 - Edit a med/schedule → regenerate only **future** `PENDING` occurrences; past stays frozen.
