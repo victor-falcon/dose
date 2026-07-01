@@ -1,7 +1,7 @@
 # Stable toolchain, mid-2026. If Android Studio's upgrade assistant flags a
 # newer patch, take it — these are pinned as a known-good stable baseline.
 [versions]
-agp = "9.2.1"
+agp = "9.1.1"
 kotlin = "2.2.20"
 ksp = "2.2.20-2.0.2"
 hilt = "2.59.2"

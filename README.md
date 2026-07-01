@@ -15,7 +15,7 @@ Reference project (architecture inspiration): [unitto](https://github.com/sadell
 | DI | Hilt | Google-standard; `@HiltWorker` integration |
 | Navigation | Navigation 3 (stable 1.0.0) | Current direction; clean deep links from notifications |
 | minSdk / target | 31 / 36 | Guaranteed Material You; `java.time` native (no desugaring) |
-| Toolchain | Stable (AGP 9.2, Gradle 9.4, compileSdk 37, Compose BOM 2026.06, Kotlin 2.2.x, Room 2.8) | Solid over bleeding-edge alphas |
+| Toolchain | Stable (AGP 9.1.1, Gradle 9.3.1, compileSdk 37, Compose BOM 2026.06, Kotlin 2.2.x, Room 2.8) | Solid over bleeding-edge alphas |
 | UI | Material 3 Expressive, dynamic color, edge-to-edge | Feel like a Pixel default app |
 | Persistence | Room + DataStore Preferences | Google-standard local storage |
 | Reminders | AlarmManager exact **+** WorkManager | Exact alarm fires the dose; worker re-nags/sweeps missed doses |
@@ -52,7 +52,7 @@ No Gradle wrapper jar is committed. Either open the project in Android Studio
 (it provisions the wrapper), or run once:
 
 ```
-gradle wrapper --gradle-version 9.4.1
+gradle wrapper --gradle-version 9.3.1
 ./gradlew :app:testDebugUnitTest   # runs OccurrenceGeneratorTest
 ./gradlew :app:assembleDebug
 ```
