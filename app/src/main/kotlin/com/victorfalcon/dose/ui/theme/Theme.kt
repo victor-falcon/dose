@@ -1,8 +1,7 @@
 package com.victorfalcon.dose.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -10,10 +9,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-// Material 3 Expressive theme. Dynamic color (Material You) is guaranteed at
-// minSdk 31, so no version guard — falls back to a static scheme only if the
-// user disables dynamic color in settings later.
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+// Material 3 with dynamic color (Material You). Dynamic color is guaranteed at
+// minSdk 31, so no version guard — it falls back to a static scheme only if the
+// user disables it later.
+// ponytail: MaterialExpressiveTheme is still `internal` in the stable Compose
+// Material3 (BOM 2026.06); swap it in here once it graduates to public API.
+// Individual expressive components can still be used where they're public.
 @Composable
 fun DoseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -26,5 +27,5 @@ fun DoseTheme(
         darkTheme -> darkColorScheme()
         else -> lightColorScheme()
     }
-    MaterialExpressiveTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(colorScheme = colorScheme, content = content)
 }
