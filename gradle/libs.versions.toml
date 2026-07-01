@@ -4,7 +4,7 @@
 agp = "9.2.1"
 kotlin = "2.2.20"
 ksp = "2.2.20-2.0.2"
-hilt = "2.57"
+hilt = "2.59.2"
 androidxHilt = "1.2.0"
 room = "2.8.4"
 composeBom = "2026.06.00"
