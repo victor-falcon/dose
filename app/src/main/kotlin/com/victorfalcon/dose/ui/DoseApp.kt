@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -29,6 +30,7 @@ import com.victorfalcon.dose.ui.editor.MedEditorScreen
 import com.victorfalcon.dose.ui.history.HistoryScreen
 import com.victorfalcon.dose.ui.meds.MedDetailScreen
 import com.victorfalcon.dose.ui.meds.MedicationsScreen
+import com.victorfalcon.dose.ui.settings.SettingsScreen
 import com.victorfalcon.dose.ui.today.TodayScreen
 import kotlinx.serialization.Serializable
 
@@ -41,6 +43,7 @@ import kotlinx.serialization.Serializable
 // Detail destinations.
 @Serializable private data class MedEditor(val medicationId: Long? = null) : NavKey
 @Serializable private data class MedDetail(val medicationId: Long) : NavKey
+@Serializable private data object SettingsDest : NavKey
 
 private enum class TopLevelTab(val key: NavKey, val icon: ImageVector, val labelRes: Int) {
     TODAY(Today, Icons.Filled.CheckCircle, R.string.nav_today),
@@ -63,13 +66,24 @@ fun DoseApp() {
                     onBack = { backStack.removeLastOrNull() },
                 )
                 is MedDetail -> DetailTopBar(titleRes = null, onBack = { backStack.removeLastOrNull() })
+                is SettingsDest -> DetailTopBar(
+                    titleRes = R.string.action_settings,
+                    onBack = { backStack.removeLastOrNull() },
+                )
                 else -> {
                     val titleRes = when (current) {
                         is History -> R.string.nav_history
                         is Medications -> R.string.nav_medications
                         else -> R.string.nav_today
                     }
-                    TopAppBar(title = { Text(stringResource(titleRes)) })
+                    TopAppBar(
+                        title = { Text(stringResource(titleRes)) },
+                        actions = {
+                            IconButton(onClick = { backStack.add(SettingsDest) }) {
+                                Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
+                            }
+                        },
+                    )
                 }
             }
         },
@@ -127,6 +141,7 @@ fun DoseApp() {
                         onArchived = { backStack.removeLastOrNull() },
                     )
                 }
+                entry<SettingsDest> { SettingsScreen() }
             },
             modifier = Modifier.padding(innerPadding),
         )

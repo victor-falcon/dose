@@ -8,13 +8,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.victorfalcon.dose.data.Settings
+import com.victorfalcon.dose.data.SettingsRepository
+import com.victorfalcon.dose.data.ThemeMode
 import com.victorfalcon.dose.ui.DoseApp
 import com.victorfalcon.dose.ui.theme.DoseTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     private val requestNotifications =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* Today reflects doses regardless */ }
@@ -24,7 +33,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         requestNotificationPermissionIfNeeded()
         setContent {
-            DoseTheme {
+            val settings by settingsRepository.settings.collectAsStateWithLifecycle(initialValue = Settings())
+            val darkTheme = when (settings.theme) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            DoseTheme(darkTheme = darkTheme, dynamicColor = settings.dynamicColor) {
                 DoseApp()
             }
         }

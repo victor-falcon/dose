@@ -18,7 +18,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 4 | Reminder engine (alarms + notifications + workers) | ✅ Done¹ |
 | 5 | History & adherence | ✅ Done² |
 | 6 | Medication management & occurrence upkeep | ✅ Done |
-| 7 | Settings | ▢ |
+| 7 | Settings | ✅ Done |
 | 8 | Backup / export (JSON) | ▢ |
 | 9 | Glance home-screen widget | ▢ |
 | 10 | Release polish | ▢ |
@@ -107,7 +107,7 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Maintenance worker: keep materializing N days ahead and pruning as time passes.
 - **Verify:** change a schedule → future updates, past untouched; archive hides from Today, keeps History.
 
-## Phase 7 — Settings
+## Phase 7 — Settings ✅
 
 **Goal:** the top-bar Settings destination.
 - Theme (light/dark/system), dynamic-color toggle, default snooze duration.
