@@ -1,7 +1,5 @@
 package com.victorfalcon.dose.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,14 +10,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -29,6 +25,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
+import com.victorfalcon.dose.ui.history.HistoryScreen
 import com.victorfalcon.dose.ui.today.TodayScreen
 import kotlinx.serialization.Serializable
 
@@ -113,7 +110,7 @@ fun DoseApp() {
                 entry<Today> {
                     TodayScreen(onAddMedication = { backStack.add(MedEditor()) })
                 }
-                entry<History> { PlaceholderScreen("History") }
+                entry<History> { HistoryScreen() }
                 entry<MedEditor> { key ->
                     MedEditorScreen(
                         medicationId = key.medicationId,
@@ -123,12 +120,5 @@ fun DoseApp() {
             },
             modifier = Modifier.padding(innerPadding),
         )
-    }
-}
-
-@Composable
-private fun PlaceholderScreen(name: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(name, style = MaterialTheme.typography.headlineMedium)
     }
 }

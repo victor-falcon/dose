@@ -13,6 +13,15 @@
     <string name="dose_skip">Skip</string>
     <string name="dose_missed">Missed</string>
 
+    <!-- History -->
+    <string name="history_adherence">Adherence</string>
+    <string name="history_range_7d">7d</string>
+    <string name="history_range_30d">30d</string>
+    <string name="history_day_empty">No doses this day</string>
+    <string name="action_prev_month">Previous month</string>
+    <string name="action_next_month">Next month</string>
+    <string name="dose_pending">Pending</string>
+
     <!-- Today -->
     <string name="today_as_needed">As needed</string>
     <string name="today_empty_title">No medications yet</string>

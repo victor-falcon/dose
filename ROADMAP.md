@@ -16,7 +16,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 2 | Create / edit a medication | ✅ Done |
 | 3 | Today screen (mark taken/skip) | ✅ Done |
 | 4 | Reminder engine (alarms + notifications + workers) | ✅ Done¹ |
-| 5 | History & adherence | ▢ |
+| 5 | History & adherence | ✅ Done² |
 | 6 | Medication management & occurrence upkeep | ▢ |
 | 7 | Settings | ▢ |
 | 8 | Backup / export (JSON) | ▢ |
@@ -84,7 +84,10 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Runtime `POST_NOTIFICATIONS` request (API 33+) and exact-alarm permission handling.
 - **Verify:** set a dose ~1 min out → notification fires → each action works → reboot reschedules.
 
-## Phase 5 — History & adherence
+## Phase 5 — History & adherence ✅
+
+> ² Monthly calendar + 7/30-day adherence shipped. Per-medication history detail is
+> deferred to Phase 6, where the medication list provides its entry point.
 
 **Goal:** the History tab answers "what did I take, skip, or miss?"
 - History screen: day-by-day (calendar or list) with per-dose status.
