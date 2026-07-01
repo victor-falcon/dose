@@ -21,7 +21,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 7 | Settings | ✅ Done |
 | 8 | Backup / export (JSON) | ✅ Done³ |
 | 9 | Glance home-screen widget | ✅ Done¹ |
-| 10 | Release polish | ▢ |
+| 10 | Release polish | ✅ Done⁴ |
 
 ---
 
@@ -135,7 +135,13 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Refresh on data change.
 - **Verify:** add widget → shows today → tap marks taken → app reflects it.
 
-## Phase 10 — Release polish
+## Phase 10 — Release polish ✅
+
+> ⁴ Adaptive + themed (monochrome) icon, core-splashscreen, predictive back
+> (`enableOnBackInvokedCallback`), R8 + resource shrinking with real ProGuard rules
+> (release build + lintVital pass, unsigned APK produced), and complete es (62/62).
+> Left as-is: MaterialExpressiveTheme (still internal in the BOM); elaborate
+> loading/error states (empty states cover the local-first flows).
 
 **Goal:** feels like a Pixel default app, ready to install.
 - Adaptive + themed (Material You) app icon; splash screen (`core-splashscreen`).

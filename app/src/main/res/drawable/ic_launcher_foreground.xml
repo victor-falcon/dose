@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A capsule/pill, diagonal, within the 66dp adaptive-icon safe zone.
+         Solid white so it doubles as the monochrome (themed-icon) silhouette. -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M35,44 L73,44 A10,10 0 0 1 73,64 L35,64 A10,10 0 0 1 35,44 Z" />
+        <!-- Split line to read as a two-part pill. -->
+        <path
+            android:fillColor="#0B6E4F"
+            android:pathData="M53,44 L55,44 L55,64 L53,64 Z" />
+    </group>
+</vector>

@@ -9,4 +9,11 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <!-- core-splashscreen: shown until the first frame, then hands off to Theme.Dose. -->
+    <style name="Theme.Dose.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_monochrome</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dose</item>
+    </style>
 </resources>
