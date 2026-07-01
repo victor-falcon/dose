@@ -1,13 +1,21 @@
 package com.victorfalcon.dose.domain.model
 
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
+// ponytail: domain models double as Room entities (single-module app). Split into
+// separate @Entity + mappers only if the domain ever needs to be framework-free.
+
 /** A medication or supplement the user tracks. */
+@Entity(tableName = "medications")
 data class Medication(
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val dosage: String? = null, // free text in v1, e.g. "500 mg", "1 pill"
     val notes: String? = null,
@@ -25,9 +33,22 @@ enum class ScheduleType {
 /**
  * The rule for one medication. All types share [times] (the times of day to
  * take it) and [startDate] (the anchor). Type-specific fields default to unused.
+ * One schedule per medication (unique index on [medicationId]).
  */
+@Entity(
+    tableName = "schedules",
+    foreignKeys = [
+        ForeignKey(
+            entity = Medication::class,
+            parentColumns = ["id"],
+            childColumns = ["medicationId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["medicationId"], unique = true)],
+)
 data class Schedule(
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val medicationId: Long,
     val type: ScheduleType,
     val startDate: LocalDate,
@@ -43,10 +64,23 @@ enum class DoseStatus { PENDING, TAKEN, SKIPPED, MISSED }
 /**
  * A materialized planned dose. Rows in the future drive alarms and the Today
  * screen; past rows are the immutable adherence history. Editing a schedule
- * regenerates only future PENDING rows.
+ * regenerates only future PENDING rows. The unique (medicationId, scheduledAt)
+ * index makes re-materializing the rolling window idempotent.
  */
+@Entity(
+    tableName = "dose_occurrences",
+    foreignKeys = [
+        ForeignKey(
+            entity = Medication::class,
+            parentColumns = ["id"],
+            childColumns = ["medicationId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["medicationId", "scheduledAt"], unique = true)],
+)
 data class DoseOccurrence(
-    val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val medicationId: Long,
     val scheduledAt: LocalDateTime,
     val status: DoseStatus = DoseStatus.PENDING,

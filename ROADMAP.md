@@ -12,7 +12,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | Phase | Theme | Status |
 |------|-------|--------|
 | 0 | Foundation: toolchain, domain model, nav skeleton | ✅ Done |
-| 1 | Persistence layer (Room + DataStore + repositories) | ▢ |
+| 1 | Persistence layer (Room + DataStore + repositories) | ✅ Done |
 | 2 | Create / edit a medication | ▢ |
 | 3 | Today screen (mark taken/skip) | ▢ |
 | 4 | Reminder engine (alarms + notifications + workers) | ▢ |
@@ -31,7 +31,7 @@ Toolchain green (AGP 9.1.1 / compileSdk 37 / Hilt / Nav3 / Room / Compose M3).
 Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerator`
 (unit-tested). Bottom-nav skeleton with Today/History placeholders. Builds + tests pass.
 
-## Phase 1 — Persistence layer
+## Phase 1 — Persistence layer ✅
 
 **Goal:** everything can read/write from a local DB.
 - Room entities for `Medication`, `Schedule`, `DoseOccurrence` (+ `@TypeConverter`s for
