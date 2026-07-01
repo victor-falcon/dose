@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dose</string>
+
+    <string name="nav_today">Hoy</string>
+    <string name="nav_history">Historial</string>
+
+    <string name="action_settings">Ajustes</string>
+    <string name="action_add_medication">Añadir medicamento</string>
+
+    <string name="dose_taken">Tomada</string>
+    <string name="dose_snooze">Posponer</string>
+    <string name="dose_skip">Omitir</string>
+    <string name="dose_missed">Perdida</string>
+</resources>
