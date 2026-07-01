@@ -13,7 +13,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 |------|-------|--------|
 | 0 | Foundation: toolchain, domain model, nav skeleton | ✅ Done |
 | 1 | Persistence layer (Room + DataStore + repositories) | ✅ Done |
-| 2 | Create / edit a medication | ▢ |
+| 2 | Create / edit a medication | ✅ Done |
 | 3 | Today screen (mark taken/skip) | ▢ |
 | 4 | Reminder engine (alarms + notifications + workers) | ▢ |
 | 5 | History & adherence | ▢ |
@@ -44,7 +44,7 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
   (~60 days) of occurrences, idempotently (no duplicates on re-run).
 - **Verify:** DAO test (in-memory Room) round-trips a med+schedule and materialized occurrences.
 
-## Phase 2 — Create / edit a medication
+## Phase 2 — Create / edit a medication ✅
 
 **Goal:** the FAB adds a real medication with any schedule type.
 - `MedEditor` screen (route via Nav3): name, dosage, notes, start date, schedule-type

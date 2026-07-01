@@ -12,4 +12,26 @@
     <string name="dose_snooze">Snooze</string>
     <string name="dose_skip">Skip</string>
     <string name="dose_missed">Missed</string>
+
+    <!-- Medication editor -->
+    <string name="editor_title_edit">Edit medication</string>
+    <string name="action_save">Save</string>
+    <string name="action_back">Back</string>
+    <string name="action_remove">Remove</string>
+    <string name="field_name">Name</string>
+    <string name="field_dosage">Dosage (optional)</string>
+    <string name="field_notes">Notes (optional)</string>
+    <string name="field_start_date">Start date</string>
+    <string name="field_schedule">Schedule</string>
+    <string name="schedule_daily_times">Daily</string>
+    <string name="schedule_weekly">Weekly</string>
+    <string name="schedule_interval">Every N days</string>
+    <string name="schedule_cyclic">Cyclic (on/off)</string>
+    <string name="schedule_as_needed">As needed</string>
+    <string name="editor_times">Times</string>
+    <string name="editor_add_time">Add time</string>
+    <string name="editor_weekdays">Days of the week</string>
+    <string name="editor_interval_days">Repeat every (days)</string>
+    <string name="editor_cycle_active">Days on</string>
+    <string name="editor_cycle_rest">Days off</string>
 </resources>
