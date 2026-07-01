@@ -46,6 +46,9 @@
     <string name="action_next_month">Mes siguiente</string>
     <string name="dose_pending">Pendiente</string>
 
+    <!-- Widget -->
+    <string name="widget_empty">Nada pendiente hoy</string>
+
     <!-- Hoy -->
     <string name="today_as_needed">Según necesidad</string>
     <string name="today_empty_title">Aún no hay medicamentos</string>

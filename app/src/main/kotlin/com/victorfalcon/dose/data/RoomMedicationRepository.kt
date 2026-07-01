@@ -6,6 +6,7 @@ import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import com.victorfalcon.dose.domain.repository.MedicationRepository
+import com.victorfalcon.dose.widget.WidgetRefresher
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -14,6 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class RoomMedicationRepository @Inject constructor(
     private val dao: DoseDao,
+    private val widgetRefresher: WidgetRefresher,
 ) : MedicationRepository {
 
     override fun observeActiveMedications(): Flow<List<Medication>> = dao.observeActiveMedications()
@@ -33,14 +35,18 @@ class RoomMedicationRepository @Inject constructor(
     override fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>> =
         dao.observeMedicationDoses(medicationId)
 
-    override suspend fun deleteFuturePendingOccurrences(medicationId: Long, from: LocalDateTime): Int =
-        dao.deleteFuturePending(medicationId, from)
+    override suspend fun deleteFuturePendingOccurrences(medicationId: Long, from: LocalDateTime): Int {
+        val count = dao.deleteFuturePending(medicationId, from)
+        widgetRefresher.refresh()
+        return count
+    }
 
     // ponytail: alarms for the deleted future doses aren't cancelled here; when they fire
     // the receiver finds no occurrence and no-ops. syncUpcoming re-arms the current set.
     override suspend fun archiveMedication(id: Long) {
         dao.setMedicationActive(id, active = false)
         dao.deleteFuturePending(id, LocalDateTime.now())
+        widgetRefresher.refresh()
     }
 
     override fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>> =
@@ -63,11 +69,14 @@ class RoomMedicationRepository @Inject constructor(
         }
         val linked = schedule.copy(medicationId = medicationId)
         if (linked.id == 0L) dao.insertSchedule(linked) else dao.updateSchedule(linked)
+        widgetRefresher.refresh()
         return medicationId
     }
 
-    override suspend fun setOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?) =
+    override suspend fun setOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?) {
         dao.updateOccurrenceStatus(id, status, takenAt)
+        widgetRefresher.refresh()
+    }
 
     // ponytail: the unique (medicationId, scheduledAt) index means two PRN logs in the
     // same second collide and the second is ignored. Not a real-world scenario for v1.
@@ -82,6 +91,7 @@ class RoomMedicationRepository @Inject constructor(
                 ),
             ),
         )
+        widgetRefresher.refresh()
     }
 
     override suspend fun getOccurrence(id: Long): DoseOccurrence? = dao.getOccurrence(id)
@@ -89,5 +99,9 @@ class RoomMedicationRepository @Inject constructor(
     override suspend fun getPendingOccurrencesUntil(until: LocalDateTime): List<DoseOccurrence> =
         dao.getPendingOccurrencesUntil(until)
 
-    override suspend fun markMissedBefore(threshold: LocalDateTime): Int = dao.markMissedBefore(threshold)
+    override suspend fun markMissedBefore(threshold: LocalDateTime): Int {
+        val count = dao.markMissedBefore(threshold)
+        widgetRefresher.refresh()
+        return count
+    }
 }

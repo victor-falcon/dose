@@ -37,6 +37,18 @@
             </intent-filter>
         </receiver>
 
+        <!-- Glance home-screen widget: today's remaining doses + quick "taken". -->
+        <receiver
+            android:name=".widget.DoseWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/dose_widget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

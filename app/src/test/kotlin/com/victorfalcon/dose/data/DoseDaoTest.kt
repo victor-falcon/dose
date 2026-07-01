@@ -7,6 +7,7 @@ import com.victorfalcon.dose.domain.model.DoseStatus
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 import com.victorfalcon.dose.domain.model.ScheduleType
+import com.victorfalcon.dose.widget.WidgetRefresher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -29,7 +30,7 @@ class DoseDaoTest {
 
     private lateinit var db: DoseDatabase
     private lateinit var dao: DoseDao
-    private val repo get() = RoomMedicationRepository(dao)
+    private val repo get() = RoomMedicationRepository(dao, WidgetRefresher(ApplicationProvider.getApplicationContext()))
     private val materializer get() = OccurrenceMaterializer(dao, OccurrenceGenerator())
 
     private val today = LocalDate.of(2026, 7, 1) // a Wednesday

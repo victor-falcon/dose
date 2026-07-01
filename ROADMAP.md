@@ -20,7 +20,7 @@ backup/export + Glance widget. **Out (v2):** inventory/refill, multiple profiles
 | 6 | Medication management & occurrence upkeep | ✅ Done |
 | 7 | Settings | ✅ Done |
 | 8 | Backup / export (JSON) | ✅ Done³ |
-| 9 | Glance home-screen widget | ▢ |
+| 9 | Glance home-screen widget | ✅ Done¹ |
 | 10 | Release polish | ▢ |
 
 ---
@@ -125,7 +125,10 @@ Domain models (`Medication`, `Schedule`, `DoseOccurrence`) + `OccurrenceGenerato
 - Import from JSON (replace or merge), re-materialize occurrences.
 - **Verify:** export → clear data → import → everything restored.
 
-## Phase 9 — Glance home-screen widget
+## Phase 9 — Glance home-screen widget ✅
+
+> ¹ Widget + quick-taken action + data-change refresh (via repository writes) are
+> code-complete and the build is green. Adding the widget and tapping it is a device check.
 
 **Goal:** today's doses on the home screen.
 - Glance widget listing today's remaining doses + quick "taken".
