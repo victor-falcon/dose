@@ -48,6 +48,14 @@ kotlin {
     }
 }
 
+// ponytail: Hilt's separate aggregating task can't find the KSP-generated
+// _ComponentTreeDeps under AGP 9 + KSP. Folding aggregation into the normal
+// processing step is the deterministic fix. Re-enable if incremental build
+// speed ever matters and the AGP-9 interaction is fixed upstream.
+hilt {
+    enableAggregatingTask = false
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,6 +67,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // DI
