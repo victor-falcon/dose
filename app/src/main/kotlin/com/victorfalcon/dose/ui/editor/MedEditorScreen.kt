@@ -27,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.ScheduleType
+import com.victorfalcon.dose.ui.common.MedIcon
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -91,6 +93,20 @@ private fun MedEditorContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            MedIcon(state.image, size = 56.dp)
+            Column {
+                Text(stringResource(R.string.field_image), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(R.string.field_image_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         OutlinedTextField(
             value = state.name,
             onValueChange = { new -> onChange { it.copy(name = new) } },

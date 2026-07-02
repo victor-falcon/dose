@@ -24,6 +24,7 @@ data class MedEditorUiState(
     val name: String = "",
     val dosage: String = "",
     val notes: String = "",
+    val image: String? = null,
     val startDate: LocalDate = LocalDate.now(),
     val type: ScheduleType = ScheduleType.DAILY_TIMES,
     val times: List<LocalTime> = listOf(LocalTime.of(8, 0)),
@@ -48,6 +49,7 @@ fun MedEditorUiState.toMedication(id: Long = 0): Medication = Medication(
     name = name.trim(),
     dosage = dosage.trim().ifBlank { null },
     notes = notes.trim().ifBlank { null },
+    image = image,
 )
 
 fun MedEditorUiState.toSchedule(medicationId: Long = 0, id: Long = 0): Schedule = Schedule(
@@ -88,6 +90,7 @@ class MedEditorViewModel @Inject constructor(
                 name = med.name,
                 dosage = med.dosage.orEmpty(),
                 notes = med.notes.orEmpty(),
+                image = med.image,
                 startDate = schedule?.startDate ?: defaults.startDate,
                 type = schedule?.type ?: defaults.type,
                 times = schedule?.times?.ifEmpty { defaults.times } ?: defaults.times,

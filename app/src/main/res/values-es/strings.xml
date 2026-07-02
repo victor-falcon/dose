@@ -61,6 +61,8 @@
     <string name="action_save">Guardar</string>
     <string name="action_back">Atrás</string>
     <string name="action_remove">Quitar</string>
+    <string name="field_image">Imagen</string>
+    <string name="field_image_hint">Podrás elegir una imagen próximamente</string>
     <string name="field_name">Nombre</string>
     <string name="field_dosage">Dosis (opcional)</string>
     <string name="field_notes">Notas (opcional)</string>
