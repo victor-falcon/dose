@@ -9,3 +9,6 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+
+# Kotlin language server scratch DB
+kls_database.db
