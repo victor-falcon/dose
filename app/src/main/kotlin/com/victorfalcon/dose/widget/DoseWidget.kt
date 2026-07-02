@@ -50,7 +50,7 @@ class DoseWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val today = LocalDate.now()
         val remaining = repository(context)
-            .observeDosesBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay())
+            .observeDosesBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay(), activeOnly = true)
             .first()
             .filter { it.status == DoseStatus.PENDING }
         provideContent { GlanceTheme { WidgetBody(remaining) } }

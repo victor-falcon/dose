@@ -34,8 +34,8 @@ interface MedicationRepository {
 
     fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>>
 
-    /** Doses joined with medication info in [start, end), for Today / History. */
-    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>>
+    /** Doses joined with medication info in [start, end). [activeOnly] hides archived meds (Today); History passes false to keep them. */
+    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime, activeOnly: Boolean = false): Flow<List<DoseView>>
 
     /** Active PRN (as-needed) medications, which have no scheduled occurrences. */
     fun observeAsNeededMedications(): Flow<List<Medication>>

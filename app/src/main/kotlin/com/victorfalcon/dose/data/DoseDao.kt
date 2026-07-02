@@ -65,10 +65,11 @@ interface DoseDao {
         FROM dose_occurrences o
         JOIN medications m ON m.id = o.medicationId
         WHERE o.scheduledAt >= :start AND o.scheduledAt < :end
+          AND (:activeOnly = 0 OR m.active = 1)
         ORDER BY o.scheduledAt
         """,
     )
-    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>>
+    fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime, activeOnly: Boolean): Flow<List<DoseView>>
 
     // All doses for one medication, most recent first (per-medication history).
     @Query(

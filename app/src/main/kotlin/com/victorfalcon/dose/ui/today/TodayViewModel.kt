@@ -43,7 +43,7 @@ class TodayViewModel @Inject constructor(
     private val today: LocalDate = LocalDate.now()
 
     val uiState: StateFlow<TodayUiState> = combine(
-        repository.observeDosesBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay()),
+        repository.observeDosesBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay(), activeOnly = true),
         repository.observeAsNeededMedications(),
     ) { doses, asNeeded ->
         TodayUiState(groups = groupByTime(doses), asNeeded = asNeeded, loading = false)

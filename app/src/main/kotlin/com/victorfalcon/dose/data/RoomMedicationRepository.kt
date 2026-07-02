@@ -52,8 +52,8 @@ class RoomMedicationRepository @Inject constructor(
     override fun observeOccurrencesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseOccurrence>> =
         dao.observeOccurrencesBetween(start, end)
 
-    override fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime): Flow<List<DoseView>> =
-        dao.observeDosesBetween(start, end)
+    override fun observeDosesBetween(start: LocalDateTime, end: LocalDateTime, activeOnly: Boolean): Flow<List<DoseView>> =
+        dao.observeDosesBetween(start, end, activeOnly)
 
     override fun observeAsNeededMedications(): Flow<List<Medication>> =
         dao.observeAsNeededMedications()

@@ -180,6 +180,23 @@ class DoseDaoTest {
         assertTrue(history.none { it.status == DoseStatus.PENDING }) // future pending stopped
     }
 
+    @Test fun `dose view hides archived meds when activeOnly, keeps them otherwise`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Creatine"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = today, times = listOf(LocalTime.of(12, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 0)
+        val start = LocalDateTime.of(today, LocalTime.MIN)
+        // TAKEN so archiving's future-pending sweep never drops it, regardless of the wall clock.
+        val occ = repo.observeOccurrencesBetween(start, start.plusDays(1)).first().single()
+        repo.setOccurrenceStatus(occ.id, DoseStatus.TAKEN, LocalDateTime.of(today, LocalTime.of(12, 5)))
+
+        repo.archiveMedication(medId)
+
+        assertTrue(repo.observeDosesBetween(start, start.plusDays(1), activeOnly = true).first().isEmpty())
+        assertEquals(1, repo.observeDosesBetween(start, start.plusDays(1), activeOnly = false).first().size)
+    }
+
     @Test fun `marking an occurrence taken persists status and takenAt`() = runTest {
         val medId = repo.saveMedicationWithSchedule(
             Medication(name = "Aspirin"),
