@@ -2,18 +2,32 @@ package com.victorfalcon.dose.ui.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,14 +76,19 @@ private fun TodayContent(
         EmptyState(onAddMedication)
         return
     }
+    // The next pending dose, chronologically — the one to take right now.
+    val featuredId = state.groups
+        .flatMap { it.doses }
+        .firstOrNull { it.status == DoseStatus.PENDING }
+        ?.occurrenceId
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(vertical = 16.dp),
     ) {
         state.groups.forEach { group ->
-            item(key = "time-${group.time}") { SectionHeader(group.time.format(timeFormatter)) }
             items(group.doses, key = { it.occurrenceId }) { dose ->
-                DoseRow(dose, onTaken, onSkip, onUndo)
+                if (dose.occurrenceId == featuredId) DoseRow(dose, true, onTaken, onSkip, onUndo)
+                else DoseRow(dose, false, onTaken, onSkip, onUndo)
             }
         }
         if (state.asNeeded.isNotEmpty()) {
@@ -91,37 +110,78 @@ private fun SectionHeader(text: String) {
     )
 }
 
+/** Scheduled time shown as a row's third line. Keeps the old header's text format. */
+@Composable
+private fun DoseTime(dose: DoseView) {
+    Text(
+        dose.scheduledAt.toLocalTime().format(timeFormatter),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 2.dp),
+    )
+}
+
 @Composable
 private fun DoseRow(
     dose: DoseView,
+    highlight: Boolean,
     onTaken: (Long) -> Unit,
     onSkip: (Long) -> Unit,
     onUndo: (Long) -> Unit,
 ) {
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        shape = RoundedCornerShape(20.dp),
+        color = if (highlight) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        MedIcon(dose.image)
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(dose.name, style = MaterialTheme.typography.titleMedium)
-            val subtitle = listOfNotNull(dose.dosage, dose.status.label()).joinToString(" · ")
-            if (subtitle.isNotEmpty()) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Row(
+            modifier = Modifier.padding(16.dp).height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MedIcon(dose.image, modifier = Modifier.fillMaxHeight().aspectRatio(1f), size = null)
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(dose.name, style = MaterialTheme.typography.headlineSmall)
+                dose.dosage?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                DoseTime(dose)
             }
-        }
-        if (dose.status == DoseStatus.PENDING) {
-            TextButton(onClick = { onSkip(dose.occurrenceId) }) { Text(stringResource(R.string.dose_skip)) }
-            FilledTonalButton(onClick = { onTaken(dose.occurrenceId) }) { Text(stringResource(R.string.dose_taken)) }
-        } else {
-            TextButton(onClick = { onUndo(dose.occurrenceId) }) { Text(stringResource(R.string.action_undo)) }
+
+            if (dose.status == DoseStatus.PENDING) {
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    FilledTonalButton(
+                        onClick = { onSkip(dose.occurrenceId) },
+                        modifier = Modifier.widthIn(min = 48.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        shape = RoundedCornerShape(
+                            topStart = CornerSize(8.dp), bottomStart = CornerSize(8.dp),
+                            topEnd = CornerSize(8.dp), bottomEnd = CornerSize(8.dp),
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dose_skip), modifier = Modifier.size(18.dp))
+                    }
+                    Button(
+                        onClick = { onTaken(dose.occurrenceId) },
+                        shape = RoundedCornerShape(
+                            topStart = CornerSize(50), bottomStart = CornerSize(50),
+                            topEnd = CornerSize(50), bottomEnd = CornerSize(50),
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.dose_taken))
+                    }
+                }
+            } else {
+                TextButton(onClick = { onUndo(dose.occurrenceId) }) { Text(stringResource(R.string.action_undo)) }
+            }
         }
     }
 }
