@@ -44,7 +44,7 @@ fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp? = 48.dp) {
     Surface(
         modifier = if (size != null) modifier.size(size) else modifier,
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = MaterialTheme.colorScheme.surfaceDim,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
