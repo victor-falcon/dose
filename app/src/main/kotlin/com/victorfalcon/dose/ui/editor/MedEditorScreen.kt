@@ -291,7 +291,8 @@ private fun TimesSection(
         }
     }
     if (showPicker) {
-        val pickerState = rememberTimePickerState(initialHour = 8, initialMinute = 0)
+        // is24Hour: a dose app can't afford the 12 AM/PM foot-gun (noon saved as midnight).
+        val pickerState = rememberTimePickerState(initialHour = 8, initialMinute = 0, is24Hour = true)
         DatePickerDialog( // reuse the dialog scaffold for the time picker
             onDismissRequest = { showPicker = false },
             confirmButton = {
