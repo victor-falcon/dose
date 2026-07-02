@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Measuring scoop (mound of powder + trapezoidal cup + handle).
+         Paths are the exact "scoop" icon by Langtik (Noun Project), in their
+         original 100x125 coordinate space. The <group> scales (0.44) and
+         translates them to fill and center a 24dp canvas, so the pathData
+         stays byte-for-byte faithful to the source artwork.
+         Tinted at usage: fillColor #FF000000 is just a placeholder. -->
+    <group
+        android:scaleX="0.44"
+        android:scaleY="0.44"
+        android:translateX="-10"
+        android:translateY="-10.37">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M46.14,40.77 A29.7,29.7,0,0,0,42,36.88 a6.92,6.92,0,0,0,-3.77,-1.68,6.91,6.91,0,0,0,-3.77,1.67,29.25,29.25,0,0,0,-4.08,3.9,56.16,56.16,0,0,0,-3.68,4.63 H49.9 C49.08,44.29,47.72,42.52,46.14,40.77 Z" />
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M25.31,46.83 H25 L29.27,64 a1,1,0,0,0,1,0.79 H46.65 a1,1,0,0,0,1,-0.84 l2.28,-12.2 a2.48,2.48,0,0,1,2.43,-2 H75 V46.83 H25.31 Z" />
+    </group>
+</vector>

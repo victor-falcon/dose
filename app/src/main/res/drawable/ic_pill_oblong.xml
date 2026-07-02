@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Oblong caplet with a score line. Tinted at usage. -->
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M7,8 A4,4 0 0 0 7,16 L17,16 A4,4 0 0 0 17,8 Z M11.3,9.5 v5 h1.4 v-5 z" />
+</vector>

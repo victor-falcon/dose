@@ -64,7 +64,7 @@
     <string name="action_back">Back</string>
     <string name="action_remove">Remove</string>
     <string name="field_image">Image</string>
-    <string name="field_image_hint">Image selection coming soon</string>
+    <string name="field_image_hint">Pick the pill shape</string>
     <string name="field_name">Name</string>
     <string name="field_dosage">Dosage (optional)</string>
     <string name="field_notes">Notes (optional)</string>

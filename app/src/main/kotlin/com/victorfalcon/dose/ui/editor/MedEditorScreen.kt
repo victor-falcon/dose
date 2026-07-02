@@ -1,5 +1,6 @@
 package com.victorfalcon.dose.ui.editor
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -48,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.ScheduleType
 import com.victorfalcon.dose.ui.common.MedIcon
+import com.victorfalcon.dose.ui.common.medImageKeys
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -93,18 +96,33 @@ private fun MedEditorContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-        ) {
-            MedIcon(state.image, size = 56.dp)
-            Column {
-                Text(stringResource(R.string.field_image), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(R.string.field_image_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.field_image), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.field_image_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                medImageKeys.forEach { key ->
+                    val selected = state.image == key
+                    MedIcon(
+                        key,
+                        size = 52.dp,
+                        modifier = Modifier
+                            .clickable { onChange { it.copy(image = key) } }
+                            .then(
+                                if (selected) Modifier.border(
+                                    2.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(12.dp),
+                                ) else Modifier,
+                            ),
+                    )
+                }
             }
         }
         OutlinedTextField(

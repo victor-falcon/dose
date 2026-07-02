@@ -16,33 +16,41 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.victorfalcon.dose.R
 
-/**
- * Resolves a stored medication image key to a drawable. Only the placeholder
- * exists today; predefined keys get added to the [when] once the art lands.
- */
+/** The pill shapes a user can pick for a medication. Stored as [Medication.image]. */
+val medImageKeys: List<String> = listOf(
+    "round", "round_scored", "oval", "capsule", "oblong",
+    "powder",
+)
+
+/** Resolves a stored medication image key to a pill-shape drawable. */
 @DrawableRes
 fun medImageRes(key: String?): Int = when (key) {
-    // ponytail: map predefined keys -> drawables here when the images exist.
-    else -> R.drawable.ic_med_placeholder
+    "round" -> R.drawable.ic_pill_round
+    "round_scored" -> R.drawable.ic_pill_round_scored
+    "oval" -> R.drawable.ic_pill_oval
+    "capsule" -> R.drawable.ic_pill_capsule
+    "oblong" -> R.drawable.ic_pill_oblong
+    "powder" -> R.drawable.ic_pill_powder
+    else -> R.drawable.ic_med_placeholder // no shape chosen yet
 }
 
 /**
- * Rounded image tile shown next to a medication in lists and the editor.
- * Pass [size] = null to let the caller size the tile via [modifier]
- * (e.g. fillMaxHeight().aspectRatio(1f) to match a neighbouring column).
+ * Rounded tile showing a medication's pill shape. The container uses the device's
+ * dynamic (Material You) color; the shape is a tinted silhouette on top.
+ * Pass [size] = null to let the caller size the tile via [modifier].
  */
 @Composable
 fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp? = 48.dp) {
     Surface(
         modifier = if (size != null) modifier.size(size) else modifier,
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 painter = painterResource(medImageRes(image)),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.fillMaxSize(0.55f),
             )
         }

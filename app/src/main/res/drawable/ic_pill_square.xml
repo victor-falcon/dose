@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Rounded square tablet. Tinted at usage. -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M8,5 h8 a3,3 0 0 1 3,3 v8 a3,3 0 0 1 -3,3 h-8 a3,3 0 0 1 -3,-3 v-8 a3,3 0 0 1 3,-3 z" />
+</vector>
