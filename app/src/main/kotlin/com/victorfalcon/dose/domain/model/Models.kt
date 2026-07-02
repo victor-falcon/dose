@@ -20,6 +20,7 @@ data class Medication(
     val dosage: String? = null, // free text in v1, e.g. "500 mg", "1 pill"
     val notes: String? = null,
     val active: Boolean = true, // soft-delete: false keeps history but stops new occurrences
+    val image: String? = null, // key into the predefined image set; null -> placeholder
 )
 
 enum class ScheduleType {
@@ -93,6 +94,7 @@ data class DoseView(
     val medicationId: Long,
     val name: String,
     val dosage: String?,
+    val image: String? = null,
     val scheduledAt: LocalDateTime,
     val status: DoseStatus,
     val takenAt: LocalDateTime?,

@@ -61,7 +61,7 @@ interface DoseDao {
     @Query(
         """
         SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
-               o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
         FROM dose_occurrences o
         JOIN medications m ON m.id = o.medicationId
         WHERE o.scheduledAt >= :start AND o.scheduledAt < :end
@@ -74,7 +74,7 @@ interface DoseDao {
     @Query(
         """
         SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
-               o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
         FROM dose_occurrences o
         JOIN medications m ON m.id = o.medicationId
         WHERE o.medicationId = :medicationId

@@ -21,7 +21,11 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): DoseDatabase =
-        Room.databaseBuilder(context, DoseDatabase::class.java, "dose.db").build()
+        // ponytail: destructive fallback is fine pre-v1 (schema not public yet).
+        // Add real migrations before shipping v1.
+        Room.databaseBuilder(context, DoseDatabase::class.java, "dose.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
 
     @Provides
     fun provideDoseDao(database: DoseDatabase): DoseDao = database.doseDao()

@@ -34,6 +34,7 @@ data class BackupMedication(
     val dosage: String? = null,
     val notes: String? = null,
     val active: Boolean = true,
+    val image: String? = null,
 )
 
 @Serializable
@@ -58,8 +59,8 @@ data class BackupOccurrence(
     val takenAt: String? = null,
 )
 
-fun Medication.toBackup() = BackupMedication(id, name, dosage, notes, active)
-fun BackupMedication.toDomain() = Medication(id, name, dosage, notes, active)
+fun Medication.toBackup() = BackupMedication(id, name, dosage, notes, active, image)
+fun BackupMedication.toDomain() = Medication(id, name, dosage, notes, active, image)
 
 fun Schedule.toBackup() = BackupSchedule(
     id = id,
