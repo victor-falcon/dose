@@ -36,6 +36,8 @@
     <string name="action_archive">Archive</string>
     <string name="action_cancel">Cancel</string>
     <string name="archive_confirm_message">Archive this medication? Its history is kept, but no new doses will be scheduled.</string>
+    <string name="detail_instructions">Instructions</string>
+    <string name="detail_description">Description</string>
 
     <!-- History -->
     <string name="history_adherence">Adherence</string>

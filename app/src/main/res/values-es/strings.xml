@@ -36,6 +36,8 @@
     <string name="action_archive">Archivar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="archive_confirm_message">¿Archivar este medicamento? Se conserva el historial, pero no se programarán nuevas dosis.</string>
+    <string name="detail_instructions">Instrucciones</string>
+    <string name="detail_description">Descripción</string>
 
     <!-- Historial -->
     <string name="history_adherence">Adherencia</string>
