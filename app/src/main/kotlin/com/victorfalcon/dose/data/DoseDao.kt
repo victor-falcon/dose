@@ -49,6 +49,9 @@ interface DoseDao {
     @Query("SELECT s.* FROM schedules s JOIN medications m ON m.id = s.medicationId WHERE m.active = 1")
     suspend fun getActiveSchedules(): List<Schedule>
 
+    @Query("SELECT s.* FROM schedules s JOIN medications m ON m.id = s.medicationId WHERE m.active = 1")
+    fun observeActiveSchedules(): Flow<List<Schedule>>
+
     // --- Occurrences ---
     // IGNORE on the unique (medicationId, scheduledAt) index -> re-materializing is idempotent.
     @Insert(onConflict = OnConflictStrategy.IGNORE)

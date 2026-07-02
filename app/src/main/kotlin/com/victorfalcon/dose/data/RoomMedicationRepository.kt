@@ -32,6 +32,8 @@ class RoomMedicationRepository @Inject constructor(
 
     override suspend fun getActiveSchedules(): List<Schedule> = dao.getActiveSchedules()
 
+    override fun observeActiveSchedules(): Flow<List<Schedule>> = dao.observeActiveSchedules()
+
     override fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>> =
         dao.observeMedicationDoses(medicationId)
 

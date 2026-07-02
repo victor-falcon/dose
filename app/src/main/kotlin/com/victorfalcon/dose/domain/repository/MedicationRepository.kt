@@ -23,6 +23,9 @@ interface MedicationRepository {
     /** Schedules of all active medications, for maintenance materialization. */
     suspend fun getActiveSchedules(): List<Schedule>
 
+    /** Active schedules as a stream, for screens that need each med's startDate. */
+    fun observeActiveSchedules(): Flow<List<Schedule>>
+
     /** All doses for one medication, most recent first. */
     fun observeMedicationDoses(medicationId: Long): Flow<List<DoseView>>
 
