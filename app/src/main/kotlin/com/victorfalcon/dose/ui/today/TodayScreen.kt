@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.victorfalcon.dose.R
+import com.victorfalcon.dose.ui.common.MedIcon
 import com.victorfalcon.dose.domain.model.DoseStatus
 import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.domain.model.Medication
@@ -101,6 +104,8 @@ private fun DoseRow(
             .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        MedIcon(dose.image)
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(dose.name, style = MaterialTheme.typography.titleMedium)
             val subtitle = listOfNotNull(dose.dosage, dose.status.label()).joinToString(" · ")
@@ -129,6 +134,8 @@ private fun AsNeededRow(medication: Medication, onLogNow: (Long) -> Unit) {
             .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        MedIcon(medication.image)
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(medication.name, style = MaterialTheme.typography.titleMedium)
             medication.dosage?.let {

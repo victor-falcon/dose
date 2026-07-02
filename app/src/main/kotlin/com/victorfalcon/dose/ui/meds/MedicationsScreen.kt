@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.Medication
+import com.victorfalcon.dose.ui.common.MedIcon
 
 @Composable
 fun MedicationsScreen(
@@ -48,6 +49,7 @@ private fun MedicationRow(medication: Medication, onClick: () -> Unit) {
     ListItem(
         headlineContent = { Text(medication.name) },
         supportingContent = medication.dosage?.let { { Text(it) } },
+        leadingContent = { MedIcon(medication.image, size = 40.dp) },
         modifier = Modifier.clickable(onClick = onClick),
     )
 }
