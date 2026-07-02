@@ -2,6 +2,7 @@ package com.victorfalcon.dose.ui.common
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -25,11 +26,15 @@ fun medImageRes(key: String?): Int = when (key) {
     else -> R.drawable.ic_med_placeholder
 }
 
-/** Rounded image tile shown next to a medication in lists and the editor. */
+/**
+ * Rounded image tile shown next to a medication in lists and the editor.
+ * Pass [size] = null to let the caller size the tile via [modifier]
+ * (e.g. fillMaxHeight().aspectRatio(1f) to match a neighbouring column).
+ */
 @Composable
-fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp = 48.dp) {
+fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp? = 48.dp) {
     Surface(
-        modifier = modifier.size(size),
+        modifier = if (size != null) modifier.size(size) else modifier,
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
@@ -38,7 +43,7 @@ fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp = 48.dp) {
                 painter = painterResource(medImageRes(image)),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(size * 0.55f),
+                modifier = Modifier.fillMaxSize(0.55f),
             )
         }
     }

@@ -2,8 +2,11 @@ package com.victorfalcon.dose.ui.meds
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -68,10 +71,14 @@ fun MedDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            MedIcon(medication.image, size = 88.dp)
+            MedIcon(
+                medication.image,
+                modifier = Modifier.fillMaxHeight().aspectRatio(1f),
+                size = null,
+            )
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
