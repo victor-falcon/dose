@@ -12,14 +12,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -57,8 +60,10 @@ fun DoseApp() {
     val backStack = rememberNavBackStack(Today)
     val current = backStack.lastOrNull()
     val isTopLevel = current is Today || current is Medications || current is History
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = if (isTopLevel) Modifier.nestedScroll(scrollBehavior.nestedScrollConnection) else Modifier,
         topBar = {
             when (current) {
                 is MedEditor -> DetailTopBar(
@@ -76,13 +81,14 @@ fun DoseApp() {
                         is Medications -> R.string.nav_medications
                         else -> R.string.nav_today
                     }
-                    TopAppBar(
+                    LargeTopAppBar(
                         title = { Text(stringResource(titleRes)) },
                         actions = {
                             IconButton(onClick = { backStack.add(SettingsDest) }) {
                                 Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                             }
                         },
+                        scrollBehavior = scrollBehavior,
                     )
                 }
             }
