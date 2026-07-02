@@ -144,13 +144,12 @@ private fun DoseRow(
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(dose.name, style = MaterialTheme.typography.headlineSmall)
-                dose.dosage?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                Text(
+                    // ponytail: blank space keeps the dosage line's height so rows without a dosage don't shrink.
+                    dose.dosage ?: " ",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 DoseTime(dose)
             }
 
