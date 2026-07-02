@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -134,7 +135,7 @@ private fun DoseRow(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(20.dp),
-        color = if (highlight) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
+        color = if (highlight) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
             modifier = Modifier.padding(16.dp).height(IntrinsicSize.Min),
@@ -143,9 +144,13 @@ private fun DoseRow(
             MedIcon(dose.image, modifier = Modifier.fillMaxHeight().aspectRatio(1f), size = null)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
-                Text(dose.name, style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    // ponytail: blank space keeps the dosage line's height so rows without a dosage don't shrink.
+                    dose.name,
+                    style = if (dose.status == DoseStatus.PENDING) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
                     dose.dosage ?: " ",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
