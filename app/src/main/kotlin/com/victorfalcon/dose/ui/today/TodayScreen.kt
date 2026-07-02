@@ -150,41 +150,44 @@ private fun DoseRow(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    dose.dosage ?: " ",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                DoseTime(dose)
-            }
-
-            if (dose.status == DoseStatus.PENDING) {
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    FilledTonalButton(
-                        onClick = { onSkip(dose.occurrenceId) },
-                        modifier = Modifier.widthIn(min = 48.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        shape = RoundedCornerShape(
-                            topStart = CornerSize(8.dp), bottomStart = CornerSize(8.dp),
-                            topEnd = CornerSize(8.dp), bottomEnd = CornerSize(8.dp),
-                        ),
-                    ) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dose_skip), modifier = Modifier.size(18.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            dose.dosage ?: " ",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        DoseTime(dose)
                     }
-                    Button(
-                        onClick = { onTaken(dose.occurrenceId) },
-                        shape = RoundedCornerShape(
-                            topStart = CornerSize(50), bottomStart = CornerSize(50),
-                            topEnd = CornerSize(50), bottomEnd = CornerSize(50),
-                        ),
-                    ) {
-                        Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                        Text(stringResource(R.string.dose_taken))
+                    if (dose.status == DoseStatus.PENDING) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                            FilledTonalButton(
+                                onClick = { onSkip(dose.occurrenceId) },
+                                modifier = Modifier.widthIn(min = 48.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                shape = RoundedCornerShape(
+                                    topStart = CornerSize(8.dp), bottomStart = CornerSize(8.dp),
+                                    topEnd = CornerSize(8.dp), bottomEnd = CornerSize(8.dp),
+                                ),
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dose_skip), modifier = Modifier.size(18.dp))
+                            }
+                            Button(
+                                onClick = { onTaken(dose.occurrenceId) },
+                                shape = RoundedCornerShape(
+                                    topStart = CornerSize(50), bottomStart = CornerSize(50),
+                                    topEnd = CornerSize(50), bottomEnd = CornerSize(50),
+                                ),
+                            ) {
+                                Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                                Text(stringResource(R.string.dose_taken))
+                            }
+                        }
+                    } else {
+                        TextButton(onClick = { onUndo(dose.occurrenceId) }) { Text(stringResource(R.string.action_undo)) }
                     }
                 }
-            } else {
-                TextButton(onClick = { onUndo(dose.occurrenceId) }) { Text(stringResource(R.string.action_undo)) }
             }
         }
     }
