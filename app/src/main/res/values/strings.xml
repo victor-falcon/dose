@@ -12,6 +12,7 @@
     <string name="dose_taken">Taken</string>
     <string name="dose_snooze">Snooze</string>
     <string name="dose_skip">Skip</string>
+    <string name="dose_skipped">Skipped</string>
     <string name="dose_missed">Missed</string>
 
     <!-- Settings -->

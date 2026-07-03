@@ -24,9 +24,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
@@ -123,9 +125,19 @@ fun DoseApp() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
+            // Scope a ViewModelStore per NavEntry so hiltViewModel() gives each
+            // destination its own VM; without this they'd share the activity scope
+            // and MedEditor would carry stale state across create/edit navigations.
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator(),
+            ),
             entryProvider = entryProvider {
                 entry<Today> {
-                    TodayScreen(onAddMedication = { backStack.add(MedEditor()) })
+                    TodayScreen(
+                        onOpenMedication = { backStack.add(MedDetail(it)) },
+                        onAddMedication = { backStack.add(MedEditor()) },
+                    )
                 }
                 entry<Medications> {
                     MedicationsScreen(
