@@ -15,13 +15,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFloatingActionButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MediumFloatingActionButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -42,7 +43,6 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
-import com.victorfalcon.dose.ui.history.HistoryScreen
 import com.victorfalcon.dose.ui.meds.MedDetailScreen
 import com.victorfalcon.dose.ui.meds.MedicationsScreen
 import com.victorfalcon.dose.ui.settings.SettingsScreen
@@ -53,7 +53,6 @@ import kotlinx.serialization.Serializable
 // stack survives config changes and process death.
 @Serializable private data object Today : NavKey
 @Serializable private data object Medications : NavKey
-@Serializable private data object History : NavKey
 
 // Detail destinations.
 @Serializable private data class MedEditor(val medicationId: Long? = null) : NavKey
@@ -63,7 +62,6 @@ import kotlinx.serialization.Serializable
 private enum class TopLevelTab(val key: NavKey, val icon: ImageVector, val labelRes: Int) {
     TODAY(Today, Icons.Filled.CheckCircle, R.string.nav_today),
     MEDICATIONS(Medications, Icons.AutoMirrored.Filled.List, R.string.nav_medications),
-    HISTORY(History, Icons.Filled.DateRange, R.string.nav_history),
 }
 
 @Composable
@@ -119,11 +117,6 @@ fun DoseApp() {
                     }
                 }
             }
-            entry<History> {
-                TopLevelScaffold(History, backStack) { padding ->
-                    Contained(padding) { HistoryScreen() }
-                }
-            }
             entry<MedEditor> { key ->
                 DetailScaffold(
                     titleRes = if (key.medicationId != null) R.string.editor_title_edit else R.string.action_add_medication,
@@ -171,7 +164,6 @@ private fun TopLevelScaffold(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val titleRes = when (tab) {
         Medications -> R.string.nav_medications
-        History -> R.string.nav_history
         else -> R.string.nav_today
     }
     Scaffold(
@@ -207,9 +199,12 @@ private fun TopLevelScaffold(
             }
         },
         floatingActionButton = {
-            if (tab == Today || tab == Medications) {
-                FloatingActionButton(onClick = { backStack.add(MedEditor()) }) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add_medication))
+            if (tab == Medications) {
+                MediumFloatingActionButton(onClick = { backStack.add(MedEditor()) }) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.action_add_medication)
+                    )
                 }
             }
         },
@@ -256,7 +251,7 @@ private const val PARALLAX = 4 // the reveal-side screen moves width / PARALLAX
 private const val TAB_FADE_MS = 700 // matches the Navigation3 default crossfade
 
 private fun isTopLevelKey(key: Any): Boolean =
-    key == Today.toString() || key == Medications.toString() || key == History.toString()
+    key == Today.toString() || key == Medications.toString()
 
 // Bottom-nav tab switch: plain crossfade, no directional slide.
 private fun tabTransition(): ContentTransform =
