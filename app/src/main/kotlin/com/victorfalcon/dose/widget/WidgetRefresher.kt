@@ -1,7 +1,6 @@
 package com.victorfalcon.dose.widget
 
 import android.content.Context
-import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,6 +16,6 @@ class WidgetRefresher @Inject constructor(
 ) {
     // A widget update failure must never roll back / crash the DB write that triggered it.
     suspend fun refresh() {
-        runCatching { DoseWidget().updateAll(context) }
+        runCatching { refreshWidgetState(context) }
     }
 }

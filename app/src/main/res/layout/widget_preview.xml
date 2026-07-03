@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static preview shown in the home-screen widget picker. Mirrors DoseWidget: a "Today" header
+  and a couple of filled med cards (one pending, one taken). Uses the device's Material You
+  tonal palette so it matches the real widget's colors.
+  ponytail: system tonal tokens don't invert for dark mode, so this preview always renders light.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/system_neutral1_50"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Today"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/system_neutral1_900" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1/2"
+            android:textSize="13sp"
+            android:textColor="@android:color/system_neutral2_500" />
+    </LinearLayout>
+
+    <!-- Card 1 — pending -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_preview_card"
+        android:backgroundTint="@android:color/system_neutral2_100"
+        android:padding="10dp">
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/widget_preview_circle"
+            android:backgroundTint="@android:color/system_neutral1_50">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_pill_round"
+                android:tint="@android:color/system_accent1_600" />
+        </FrameLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ibuprofen"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/system_neutral1_900" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8:00"
+                android:textSize="13sp"
+                android:textColor="@android:color/system_neutral2_500" />
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/widget_preview_circle"
+            android:backgroundTint="@android:color/system_neutral1_50">
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_widget_circle"
+                android:tint="@android:color/system_neutral2_500" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Card 2 — taken -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/widget_preview_card"
+        android:backgroundTint="@android:color/system_neutral2_100"
+        android:padding="10dp">
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/widget_preview_circle"
+            android:backgroundTint="@android:color/system_neutral1_50">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_pill_capsule"
+                android:tint="@android:color/system_accent1_600" />
+        </FrameLayout>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vitamin D"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/system_neutral1_900" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9:00"
+                android:textSize="13sp"
+                android:textColor="@android:color/system_neutral2_500" />
+        </LinearLayout>
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/widget_preview_circle"
+            android:backgroundTint="#2E7D32">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_widget_check"
+                android:tint="#FFFFFF" />
+        </FrameLayout>
+    </LinearLayout>
+
+</LinearLayout>
