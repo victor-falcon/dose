@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -20,10 +22,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
@@ -42,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -82,7 +87,7 @@ private fun LaunchedLoad(medicationId: Long?, viewModel: MedEditorViewModel) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MedEditorContent(
     state: MedEditorUiState,
@@ -96,6 +101,14 @@ private fun MedEditorContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        OutlinedTextField(
+            value = state.name,
+            onValueChange = { new -> onChange { it.copy(name = new) } },
+            label = { Text(stringResource(R.string.field_name)) },
+            singleLine = true,
+            isError = state.name.isBlank(),
+            modifier = Modifier.fillMaxWidth(),
+        )
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.field_image), style = MaterialTheme.typography.titleMedium)
             Text(
@@ -106,13 +119,16 @@ private fun MedEditorContent(
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
+                maxItemsInEachRow = 6,
             ) {
                 medImageKeys.forEach { key ->
                     val selected = state.image == key
                     MedIcon(
                         key,
-                        size = 52.dp,
+                        size = null, // fill the row: weight + square aspect
                         modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
                             .clickable { onChange { it.copy(image = key) } }
                             .then(
                                 if (selected) Modifier.border(
@@ -125,14 +141,6 @@ private fun MedEditorContent(
                 }
             }
         }
-        OutlinedTextField(
-            value = state.name,
-            onValueChange = { new -> onChange { it.copy(name = new) } },
-            label = { Text(stringResource(R.string.field_name)) },
-            singleLine = true,
-            isError = state.name.isBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        )
         OutlinedTextField(
             value = state.dosage,
             onValueChange = { new -> onChange { it.copy(dosage = new) } },
@@ -186,12 +194,19 @@ private fun MedEditorContent(
         }
 
         Spacer(Modifier.height(8.dp))
+        val saveButtonHeight = ButtonDefaults.LargeContainerHeight
         Button(
             onClick = onSave,
             enabled = state.isValid && !state.saving,
-            modifier = Modifier.fillMaxWidth(),
+            contentPadding = ButtonDefaults.contentPaddingFor(saveButtonHeight),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = saveButtonHeight),
         ) {
-            Text(stringResource(R.string.action_save))
+            Text(
+                stringResource(R.string.action_save),
+                style = ButtonDefaults.textStyleFor(saveButtonHeight),
+            )
         }
     }
 }
@@ -305,7 +320,10 @@ private fun TimesSection(
                 TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_back)) }
             },
         ) {
-            Column(Modifier.padding(16.dp)) { TimePicker(state = pickerState) }
+            Column(
+                Modifier.fillMaxWidth().padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) { TimePicker(state = pickerState) }
         }
     }
 }
