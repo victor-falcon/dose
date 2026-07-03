@@ -83,12 +83,19 @@ fun DoseApp() {
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        // Material shared-axis X: forward slides the new screen in from the right;
-        // back always slides the current screen off to the right while the previous
-        // one parallaxes in from the left with a quick fade — same direction for
-        // both swipe edges. Predictive back seeks these by gesture progress, so the
-        // same specs drive the live drag.
-        transitionSpec = { forwardTransition() },
+        // Material shared-axis X for push/pop: forward slides the new screen in from
+        // the right; back always slides the current screen off to the right while the
+        // previous one parallaxes in from the left with a quick fade — same direction
+        // for both swipe edges. Predictive back seeks these by gesture progress, so
+        // the same specs drive the live drag. Bottom-nav tab switches keep the plain
+        // Navigation3 default crossfade instead of a directional slide.
+        transitionSpec = {
+            if (isTopLevelKey(initialState.key) && isTopLevelKey(targetState.key)) {
+                tabTransition()
+            } else {
+                forwardTransition()
+            }
+        },
         popTransitionSpec = { backTransition() },
         predictivePopTransitionSpec = { backTransition() },
         entryProvider = entryProvider {
@@ -246,6 +253,17 @@ private fun Contained(padding: PaddingValues, screen: @Composable () -> Unit) {
 private const val SLIDE_MS = 350
 private const val FADE_MS = 180
 private const val PARALLAX = 4 // the reveal-side screen moves width / PARALLAX
+private const val TAB_FADE_MS = 700 // matches the Navigation3 default crossfade
+
+private fun isTopLevelKey(key: Any): Boolean =
+    key == Today.toString() || key == Medications.toString() || key == History.toString()
+
+// Bottom-nav tab switch: plain crossfade, no directional slide.
+private fun tabTransition(): ContentTransform =
+    ContentTransform(
+        targetContentEnter = fadeIn(tween(TAB_FADE_MS)),
+        initialContentExit = fadeOut(tween(TAB_FADE_MS)),
+    )
 
 // Forward: the new screen slides fully in from the right; the current one
 // parallaxes left and fades out beneath it.
