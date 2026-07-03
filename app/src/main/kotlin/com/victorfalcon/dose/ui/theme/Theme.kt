@@ -7,7 +7,13 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+
+// "Dose taken" is always green, independent of the dynamic palette, so a filled
+// dose shape reads unambiguously as a good outcome. White check for contrast.
+val DoseTakenFill = Color(0xFF2E7D32)
+val OnDoseTaken = Color.White
 
 // Material 3 with dynamic color (Material You). Dynamic color is guaranteed at
 // minSdk 31, so no version guard — it falls back to a static scheme only if the
