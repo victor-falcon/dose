@@ -1,5 +1,6 @@
 package com.victorfalcon.dose.ui.meds
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,17 +16,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +43,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.common.MedIcon
+import com.victorfalcon.dose.ui.theme.DoseTakenFill
+import com.victorfalcon.dose.ui.theme.OnDoseTaken
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -115,14 +125,31 @@ private fun AdherenceHistory(history: List<DayAdherence>) {
     }
 }
 
+// Each day's outcome as an M3 MaterialShapes shape: SoftBoom (taken), 4-sided cookie (not
+// taken — skipped or missed), 7-sided cookie (not scheduled). Colour + a check/✕ reinforce it.
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DayCell(date: LocalDate, adherence: DayAdherence, isToday: Boolean, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
-    val ring = when (adherence) {
-        DayAdherence.TAKEN -> scheme.primary
-        DayAdherence.SKIPPED -> scheme.tertiary
-        DayAdherence.MISSED -> scheme.error
-        DayAdherence.NOT_SCHEDULED, DayAdherence.UNKNOWN -> scheme.outlineVariant
+    val shape = when (adherence) {
+        DayAdherence.TAKEN -> MaterialShapes.SoftBoom
+        DayAdherence.SKIPPED, DayAdherence.MISSED -> MaterialShapes.Cookie4Sided
+        else -> MaterialShapes.Cookie7Sided // NOT_SCHEDULED, UNKNOWN
+    }.toShape()
+    val fill = when (adherence) {
+        DayAdherence.TAKEN -> DoseTakenFill
+        DayAdherence.SKIPPED, DayAdherence.MISSED -> scheme.error
+        else -> scheme.surfaceContainerHighest // NOT_SCHEDULED, UNKNOWN
+    }
+    val content = when (adherence) {
+        DayAdherence.TAKEN -> OnDoseTaken
+        DayAdherence.SKIPPED, DayAdherence.MISSED -> scheme.onError
+        else -> scheme.onSurfaceVariant
+    }
+    val icon = when (adherence) {
+        DayAdherence.TAKEN -> Icons.Filled.Check
+        DayAdherence.SKIPPED, DayAdherence.MISSED -> Icons.Filled.Close
+        else -> null
     }
     Column(
         modifier = modifier,
@@ -135,18 +162,25 @@ private fun DayCell(date: LocalDate, adherence: DayAdherence, isToday: Boolean, 
             color = if (isToday) scheme.onSurface else scheme.onSurfaceVariant,
             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
         )
+        Text(
+            date.dayOfMonth.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = if (isToday) scheme.onSurface else scheme.onSurfaceVariant,
+            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+        )
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .border(2.dp, ring, CircleShape),
+                .size(34.dp)
+                .let { m ->
+                    // UNKNOWN (before the schedule started) reads as a faint outline, no fill.
+                    if (adherence == DayAdherence.UNKNOWN) m.border(1.dp, scheme.outlineVariant, shape)
+                    else m.clip(shape).background(fill)
+                },
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                date.dayOfMonth.toString(),
-                style = MaterialTheme.typography.labelLarge,
-                color = scheme.onSurface,
-                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-            )
+            if (icon != null) {
+                Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
+            }
         }
     }
 }
