@@ -1,12 +1,15 @@
 package com.victorfalcon.dose.ui
 
-import androidx.compose.animation.EnterExitState
-import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -26,20 +29,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
@@ -84,6 +83,14 @@ fun DoseApp() {
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
+        // Material shared-axis X: forward slides the new screen in from the right;
+        // back always slides the current screen off to the right while the previous
+        // one parallaxes in from the left with a quick fade — same direction for
+        // both swipe edges. Predictive back seeks these by gesture progress, so the
+        // same specs drive the live drag.
+        transitionSpec = { forwardTransition() },
+        popTransitionSpec = { backTransition() },
+        predictivePopTransitionSpec = { backTransition() },
         entryProvider = entryProvider {
             entry<Today> {
                 TopLevelScaffold(Today, backStack) { padding ->
@@ -162,7 +169,7 @@ private fun TopLevelScaffold(
     }
     Scaffold(
         modifier = Modifier
-            .predictiveBackContainer()
+            .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
@@ -211,7 +218,7 @@ private fun DetailScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
-        modifier = Modifier.predictiveBackContainer(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { titleRes?.let { Text(stringResource(it)) } },
@@ -236,14 +243,25 @@ private fun Contained(padding: PaddingValues, screen: @Composable () -> Unit) {
     Box(Modifier.fillMaxSize().padding(padding)) { screen() }
 }
 
-// Rounds the whole destination while it's mid-transition (peaking at the
-// predictive-back scaleOut) so the shrinking screen reads as a Material card.
-// At rest the corners are square and the screen fills edge-to-edge.
-@Composable
-private fun Modifier.predictiveBackContainer(): Modifier {
-    val transition = LocalNavAnimatedContentScope.current.transition
-    val corner by transition.animateFloat(label = "predictiveBackCorner") { state ->
-        if (state == EnterExitState.Visible) 0f else 28f
-    }
-    return fillMaxSize().clip(RoundedCornerShape(corner.dp))
-}
+private const val SLIDE_MS = 350
+private const val FADE_MS = 180
+private const val PARALLAX = 4 // the reveal-side screen moves width / PARALLAX
+
+// Forward: the new screen slides fully in from the right; the current one
+// parallaxes left and fades out beneath it.
+private fun forwardTransition(): ContentTransform =
+    ContentTransform(
+        targetContentEnter = slideInHorizontally(tween(SLIDE_MS)) { it },
+        initialContentExit = slideOutHorizontally(tween(SLIDE_MS)) { -it / PARALLAX } +
+            fadeOut(tween(FADE_MS)),
+    )
+
+// Back: the current screen slides fully out to the right on top, revealing the
+// previous one, which parallaxes in from the left with a quick fade.
+private fun backTransition(): ContentTransform =
+    ContentTransform(
+        targetContentEnter = slideInHorizontally(tween(SLIDE_MS)) { -it / PARALLAX } +
+            fadeIn(tween(FADE_MS)),
+        initialContentExit = slideOutHorizontally(tween(SLIDE_MS)) { it },
+        targetContentZIndex = -1f,
+    )
