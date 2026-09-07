@@ -1,3 +1,8 @@
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class,
+)
+
 package com.victorfalcon.dose.ui.editor
 
 import androidx.compose.foundation.border
@@ -11,8 +16,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,28 +26,26 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.ScheduleType
@@ -66,13 +71,18 @@ import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 
+/** Fields keep a 12 dp corner instead of the component default, per the redesign. */
+private val FieldShape = RoundedCornerShape(12.dp)
+
 @Composable
 fun MedEditorScreen(
     medicationId: Long?,
     onDone: () -> Unit,
     viewModel: MedEditorViewModel = hiltViewModel(),
 ) {
-    LaunchedLoad(medicationId, viewModel)
+    LaunchedEffect(medicationId) {
+        if (medicationId != null) viewModel.load(medicationId)
+    }
     MedEditorContent(
         state = viewModel.uiState,
         onChange = viewModel::update,
@@ -80,14 +90,6 @@ fun MedEditorScreen(
     )
 }
 
-@Composable
-private fun LaunchedLoad(medicationId: Long?, viewModel: MedEditorViewModel) {
-    androidx.compose.runtime.LaunchedEffect(medicationId) {
-        if (medicationId != null) viewModel.load(medicationId)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MedEditorContent(
     state: MedEditorUiState,
@@ -98,7 +100,8 @@ private fun MedEditorContent(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 20.dp)
+            .padding(top = 4.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         OutlinedTextField(
@@ -107,59 +110,47 @@ private fun MedEditorContent(
             label = { Text(stringResource(R.string.field_name)) },
             singleLine = true,
             isError = state.name.isBlank(),
+            shape = FieldShape,
             modifier = Modifier.fillMaxWidth(),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.field_image), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(R.string.field_image_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                maxItemsInEachRow = 6,
-            ) {
-                medImageKeys.forEach { key ->
-                    val selected = state.image == key
-                    MedIcon(
-                        key,
-                        size = null, // fill the row: weight + square aspect
-                        modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
-                            .clickable { onChange { it.copy(image = key) } }
-                            .then(
-                                if (selected) Modifier.border(
-                                    2.dp,
-                                    MaterialTheme.colorScheme.primary,
-                                    RoundedCornerShape(12.dp),
-                                ) else Modifier,
-                            ),
-                    )
-                }
-            }
-        }
+
+        ShapePicker(state.image) { key -> onChange { it.copy(image = key) } }
+
         OutlinedTextField(
             value = state.dosage,
             onValueChange = { new -> onChange { it.copy(dosage = new) } },
             label = { Text(stringResource(R.string.field_dosage)) },
             singleLine = true,
+            shape = FieldShape,
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = state.notes,
             onValueChange = { new -> onChange { it.copy(notes = new) } },
             label = { Text(stringResource(R.string.field_notes)) },
+            minLines = 2,
+            shape = FieldShape,
             modifier = Modifier.fillMaxWidth(),
         )
 
         StartDateField(state.startDate) { picked -> onChange { it.copy(startDate = picked) } }
 
-        ScheduleTypeDropdown(state.type) { picked -> onChange { it.copy(type = picked) } }
+        // The pauta is a row of chips, not a dropdown: five options, all visible.
+        Section(stringResource(R.string.field_schedule)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ScheduleType.entries.forEach { option ->
+                    FilterChip(
+                        selected = state.type == option,
+                        onClick = { onChange { it.copy(type = option) } },
+                        label = { Text(stringResource(option.labelRes)) },
+                    )
+                }
+            }
+        }
 
-        // Type-specific inputs.
         if (state.needsTimes) {
             TimesSection(
                 times = state.times,
@@ -168,8 +159,19 @@ private fun MedEditorContent(
             )
         }
         when (state.type) {
-            ScheduleType.WEEKLY -> WeekdaysSection(state.daysOfWeek) { day ->
-                onChange { it.copy(daysOfWeek = it.daysOfWeek.toggle(day)) }
+            ScheduleType.WEEKLY -> Section(stringResource(R.string.editor_weekdays)) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    DayOfWeek.entries.forEach { day ->
+                        FilterChip(
+                            selected = day in state.daysOfWeek,
+                            onClick = { onChange { it.copy(daysOfWeek = it.daysOfWeek.toggle(day)) } },
+                            label = { Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault())) },
+                        )
+                    }
+                }
             }
             ScheduleType.INTERVAL -> NumberField(
                 label = stringResource(R.string.editor_interval_days),
@@ -193,25 +195,98 @@ private fun MedEditorContent(
             else -> Unit
         }
 
-        Spacer(Modifier.height(8.dp))
-        val saveButtonHeight = ButtonDefaults.LargeContainerHeight
+        Spacer(Modifier.height(4.dp))
+        val saveHeight = 72.dp
         Button(
             onClick = onSave,
             enabled = state.isValid && !state.saving,
-            contentPadding = ButtonDefaults.contentPaddingFor(saveButtonHeight),
+            shapes = ButtonDefaults.shapesFor(saveHeight),
+            contentPadding = ButtonDefaults.contentPaddingFor(saveHeight),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = saveButtonHeight),
+                .height(saveHeight),
         ) {
             Text(
                 stringResource(R.string.action_save),
-                style = ButtonDefaults.textStyleFor(saveButtonHeight),
+                style = ButtonDefaults.textStyleFor(saveHeight),
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** The pill shapes, six across. The chosen one gets a primary outline and a check badge. */
+@Composable
+private fun ShapePicker(selectedKey: String?, onSelect: (String) -> Unit) {
+    Section(stringResource(R.string.field_image)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            maxItemsInEachRow = 6,
+        ) {
+            medImageKeys.forEach { key ->
+                val selected = selectedKey == key
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(1f),
+                ) {
+                    MedIcon(
+                        key,
+                        size = null,
+                        shape = RoundedCornerShape(16.dp),
+                        container = if (selected) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { onSelect(key) }
+                            .then(
+                                if (selected) {
+                                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                                } else {
+                                    Modifier
+                                }
+                            ),
+                    )
+                    if (selected) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 5.dp, y = (-5).dp)
+                                .size(20.dp),
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Section(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            title.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 1.1.sp,
+        )
+        content()
+    }
+}
+
 @Composable
 private fun StartDateField(date: LocalDate, onPick: (LocalDate) -> Unit) {
     var showPicker by remember { mutableStateOf(false) }
@@ -224,6 +299,7 @@ private fun StartDateField(date: LocalDate, onPick: (LocalDate) -> Unit) {
             readOnly = true,
             enabled = false,
             label = { Text(stringResource(R.string.field_start_date)) },
+            shape = FieldShape,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -240,7 +316,7 @@ private fun StartDateField(date: LocalDate, onPick: (LocalDate) -> Unit) {
                 }) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_back)) }
+                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             DatePicker(state = pickerState)
@@ -248,36 +324,6 @@ private fun StartDateField(date: LocalDate, onPick: (LocalDate) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ScheduleTypeDropdown(type: ScheduleType, onSelect: (ScheduleType) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = stringResource(type.labelRes),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(stringResource(R.string.field_schedule)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            ScheduleType.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(stringResource(option.labelRes)) },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TimesSection(
     times: List<LocalTime>,
@@ -285,22 +331,33 @@ private fun TimesSection(
     onRemove: (LocalTime) -> Unit,
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    Column {
-        Text(stringResource(R.string.editor_times))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Section(stringResource(R.string.editor_times)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             times.forEach { time ->
                 InputChip(
-                    selected = false,
+                    selected = true,
                     onClick = { onRemove(time) },
                     label = { Text(time.format(timeFormatter)) },
                     trailingIcon = {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_remove))
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.action_remove),
+                            modifier = Modifier.size(16.dp),
+                        )
                     },
                 )
             }
-            TextButton(onClick = { showPicker = true }) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
+            FilledTonalButton(
+                onClick = { showPicker = true },
+                shapes = ButtonDefaults.shapes(),
+                contentPadding = ButtonDefaults.ExtraSmallContentPadding,
+                modifier = Modifier.height(36.dp),
+            ) {
+                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.editor_add_time))
             }
         }
@@ -317,30 +374,13 @@ private fun TimesSection(
                 }) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_back)) }
+                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) { TimePicker(state = pickerState) }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun WeekdaysSection(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
-    Column {
-        Text(stringResource(R.string.editor_weekdays))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DayOfWeek.entries.forEach { day ->
-                FilterChip(
-                    selected = day in selected,
-                    onClick = { onToggle(day) },
-                    label = { Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault())) },
-                )
-            }
         }
     }
 }
@@ -357,6 +397,7 @@ private fun NumberField(
         onValueChange = { text -> onValueChange(text.filter(Char::isDigit).toIntOrNull() ?: 0) },
         label = { Text(label) },
         singleLine = true,
+        shape = FieldShape,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = modifier,
     )

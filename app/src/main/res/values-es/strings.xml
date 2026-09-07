@@ -63,7 +63,7 @@
     <string name="action_save">Guardar</string>
     <string name="action_back">Atrás</string>
     <string name="action_remove">Quitar</string>
-    <string name="field_image">Imagen</string>
+    <string name="field_image">Forma</string>
     <string name="field_image_hint">Elige la forma de la pastilla</string>
     <string name="field_name">Nombre</string>
     <string name="field_dosage">Dosis (opcional)</string>
@@ -81,4 +81,76 @@
     <string name="editor_interval_days">Repetir cada (días)</string>
     <string name="editor_cycle_active">Días activos</string>
     <string name="editor_cycle_rest">Días de descanso</string>
+    <string name="dose_skipped">Omitida</string>
+
+    <!-- Hoy -->
+    <string name="today_rest_of_day">El resto del día</string>
+    <string name="today_now">Ahora</string>
+    <string name="today_right_now">ahora mismo</string>
+    <string name="today_in_minutes">en %1$d min</string>
+    <string name="today_in_hours">en %1$d h</string>
+    <string name="today_ago_minutes">hace %1$d min</string>
+    <string name="today_ago_hours">hace %1$d h</string>
+    <string name="today_progress">%1$d/%2$d</string>
+    <string name="today_all_done">Todo tomado</string>
+    <string name="today_all_done_detail">%1$d de %2$d · nada más hasta mañana</string>
+    <string name="dose_taken_at">Tomada a las %1$s</string>
+    <string name="dose_snooze_minutes">Posponer %1$d min</string>
+
+    <!-- Lista de medicamentos -->
+    <string name="med_week_count">%1$d/%2$d</string>
+    <string name="med_week_label">semana</string>
+
+    <!-- Resumen de pautas -->
+    <string name="sched_daily">Cada día</string>
+    <string name="sched_daily_at">cada día a las %1$s</string>
+    <string name="sched_times_per_day">%1$d tomas al día</string>
+    <string name="sched_every_n_days">cada %1$d días</string>
+    <string name="sched_cycle">%1$d días sí / %2$d no</string>
+
+    <!-- Detalle del medicamento -->
+    <string name="detail_schedule">Pauta</string>
+    <string name="detail_notes">Notas</string>
+    <string name="detail_since">Desde el %1$s</string>
+    <string name="detail_adherence">Adherencia · últimas 2 semanas</string>
+    <string name="detail_adherence_percent">%1$d%%</string>
+    <string name="detail_adherence_detail">%1$d de %2$d tomas</string>
+    <string name="detail_adherence_pending">%1$d pendientes</string>
+    <string name="detail_axis_start">hace 2 semanas</string>
+    <string name="detail_axis_end">hoy</string>
+    <string name="detail_recent">Últimas tomas</string>
+    <string name="legend_taken">tomada</string>
+    <string name="legend_missed">fallada</string>
+    <string name="legend_skipped">omitida</string>
+    <string name="legend_pending">pendiente</string>
+    <string name="date_today">Hoy</string>
+    <string name="date_yesterday">Ayer</string>
+
+    <!-- Pantalla de foco (desde notificación o widget) -->
+    <string name="focus_position">Dosis %1$d de %2$d</string>
+    <string name="focus_open_medication">Ver ficha</string>
+    <string name="focus_take_all">Tomar las %1$d</string>
+    <string name="focus_hour_done">No queda nada a esta hora</string>
+    <string name="action_close">Cerrar</string>
+
+    <!-- Widget -->
+    <string name="widget_all_done">Todo tomado</string>
+    <string name="widget_day_progress">%1$d de %2$d</string>
+    <string name="widget_doses_at">%1$s · %2$d tomas</string>
+    <string name="widget_take_all_short">Todas</string>
+    <string name="widget_next">siguiente</string>
+
+    <!-- Notificaciones -->
+    <string name="notification_group_title">%1$d tomas a las %2$s</string>
+    <string name="notification_take_all">Tomar las %1$d</string>
+    <string name="notification_open">Abrir</string>
+    <string name="settings_dynamic_color_detail">Usa el color del fondo de pantalla</string>
+    <string name="settings_reminders">Recordatorios</string>
+    <string name="settings_backup_detail">Un único archivo JSON con medicamentos, pautas e historial.</string>
+    <string name="widget_doses_count">%1$d tomas</string>
+    <string name="widget_tap_hint">toca una para abrirla</string>
+    <string name="today_nothing_pending">Nada pendiente hoy</string>
+    <string name="today_exact_alarm_title">Los recordatorios pueden llegar tarde</string>
+    <string name="today_exact_alarm_body">Permite alarmas y recordatorios para avisar a la hora exacta</string>
+    <string name="today_nothing_pending_detail">%1$d de %2$d tomadas</string>
 </resources>

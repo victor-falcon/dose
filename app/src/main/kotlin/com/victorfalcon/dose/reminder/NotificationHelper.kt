@@ -15,6 +15,7 @@ import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.Medication
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import javax.inject.Inject
@@ -62,7 +63,66 @@ class NotificationHelper @Inject constructor(
         manager.notify(id.toInt(), notification)
     }
 
+    /**
+     * Several doses at the same time: one notification for the hour instead of three that stack
+     * on top of each other. "Take all" resolves them in a single tap; opening it lands on the
+     * focus screen, which then walks through them one by one.
+     */
+    fun showGroup(scheduledAt: LocalDateTime, doses: List<Pair<DoseOccurrence, Medication?>>) {
+        if (doses.isEmpty()) return
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        ensureChannel()
+        val hourMinutes = scheduledAt.toLocalTime().toSecondOfDay() / 60
+        val time = scheduledAt.format(timeFormatter)
+        val firstId = doses.first().first.id
+        val names = doses.mapNotNull { it.second?.name }.joinToString(" · ")
+
+        val notification = NotificationCompat.Builder(context, Reminders.CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(context.getString(R.string.notification_group_title, doses.size, time))
+            .setContentText(names)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(names))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            // Re-posted whenever one of the doses is resolved, so it must not buzz again.
+            .setOnlyAlertOnce(true)
+            .setContentIntent(contentIntent(firstId))
+            .addAction(
+                0,
+                context.getString(R.string.notification_take_all, doses.size),
+                groupActionIntent(Reminders.ACTION_TAKE_ALL, hourMinutes, 1),
+            )
+            .addAction(0, context.getString(R.string.notification_open), contentIntent(firstId))
+            .addAction(
+                0,
+                context.getString(R.string.dose_snooze),
+                groupActionIntent(Reminders.ACTION_SNOOZE_ALL, hourMinutes, 2),
+            )
+            .build()
+        manager.notify(Reminders.groupNotificationId(hourMinutes), notification)
+    }
+
     fun cancel(occurrenceId: Long) = manager.cancel(occurrenceId.toInt())
+
+    fun cancelGroup(hourMinutes: Int) = manager.cancel(Reminders.groupNotificationId(hourMinutes))
+
+    private fun groupActionIntent(action: String, hourMinutes: Int, offset: Int): PendingIntent {
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            this.action = action
+            putExtra(Reminders.EXTRA_HOUR_MINUTES, hourMinutes)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            Reminders.groupRequestCode(hourMinutes, offset),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
 
     private fun actionIntent(action: String, occurrenceId: Long, offset: Int): PendingIntent {
         val intent = Intent(context, ReminderReceiver::class.java).apply {

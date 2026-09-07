@@ -1,39 +1,32 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.victorfalcon.dose.ui.meds
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,9 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.victorfalcon.dose.R
+import com.victorfalcon.dose.ui.common.DoseCellState
+import com.victorfalcon.dose.ui.common.DoseFractionCell
+import com.victorfalcon.dose.ui.common.DoseStateCell
 import com.victorfalcon.dose.ui.common.MedIcon
-import com.victorfalcon.dose.ui.theme.DoseTakenFill
-import com.victorfalcon.dose.ui.theme.OnDoseTaken
+import com.victorfalcon.dose.ui.common.scheduleSummaryShort
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -62,124 +57,123 @@ fun MedicationsScreen(
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 16.dp),
+        contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp),
     ) {
         items(medications, key = { it.medication.id }) { row ->
-            MedicationRow(row) { onOpenMedication(row.medication.id) }
+            MedicationCard(row, Modifier.animateItem()) { onOpenMedication(row.medication.id) }
         }
     }
 }
 
 @Composable
-private fun MedicationRow(row: MedRow, onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier
+private fun MedicationCard(row: MedRow, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 20.dp, vertical = 6.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(verticalAlignment = Alignment.Top) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 MedIcon(row.medication.image, size = 56.dp)
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
                         row.medication.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        maxLines = 2,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Text(
-                        row.medication.dosage ?: "",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    val subtitle = listOfNotNull(
+                        row.medication.dosage?.takeIf { it.isNotBlank() },
+                        scheduleSummaryShort(row.schedule),
+                    ).joinToString(" · ")
+                    if (subtitle.isNotBlank()) {
+                        Text(
+                            subtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                if (row.dosesThisWeek > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(R.string.med_week_count, row.takenThisWeek, row.dosesThisWeek),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Text(
+                            stringResource(R.string.med_week_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
-            AdherenceHistory(row.history)
+            if (row.dosesThisWeek > 0) {
+                Spacer(Modifier.height(14.dp))
+                WeekStrip(row)
+            }
         }
     }
 }
 
+/**
+ * The week, one column per day and one cell per dose. A once-a-day medication looks like a single
+ * row of shapes; a three-times-a-day one stacks three, so "2 of 3 taken" is visible instead of
+ * being rounded into a verdict.
+ */
 @Composable
-private fun AdherenceHistory(history: List<DayAdherence>) {
-    // history is oldest -> newest, always HISTORY_DAYS long, so the last cell is today.
+private fun WeekStrip(row: MedRow) {
     val today = remember { LocalDate.now() }
+    val cellSize = when (row.dosesPerDay) {
+        0, 1 -> 30.dp
+        2 -> 17.dp
+        3 -> 12.dp
+        else -> 28.dp // four or more: one proportional cell per day
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        history.forEachIndexed { index, adherence ->
-            DayCell(
-                date = today.minusDays((history.lastIndex - index).toLong()),
-                adherence = adherence,
-                isToday = index == history.lastIndex,
+        row.week.forEach { day ->
+            val isToday = day.date == today
+            Column(
                 modifier = Modifier.weight(1f),
-            )
-        }
-    }
-}
-
-// Each day's outcome as an M3 MaterialShapes shape: SoftBoom (taken), 4-sided cookie (not
-// taken — skipped or missed), 7-sided cookie (not scheduled). Colour + a check/✕ reinforce it.
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun DayCell(date: LocalDate, adherence: DayAdherence, isToday: Boolean, modifier: Modifier = Modifier) {
-    val scheme = MaterialTheme.colorScheme
-    val shape = when (adherence) {
-        DayAdherence.TAKEN -> MaterialShapes.SoftBoom
-        DayAdherence.SKIPPED, DayAdherence.MISSED -> MaterialShapes.Cookie4Sided
-        else -> MaterialShapes.Cookie7Sided // NOT_SCHEDULED, UNKNOWN
-    }.toShape()
-    val fill = when (adherence) {
-        DayAdherence.TAKEN -> DoseTakenFill
-        DayAdherence.SKIPPED, DayAdherence.MISSED -> scheme.error
-        else -> scheme.surfaceContainerHighest // NOT_SCHEDULED, UNKNOWN
-    }
-    val content = when (adherence) {
-        DayAdherence.TAKEN -> OnDoseTaken
-        DayAdherence.SKIPPED, DayAdherence.MISSED -> scheme.onError
-        else -> scheme.onSurfaceVariant
-    }
-    val icon = when (adherence) {
-        DayAdherence.TAKEN -> Icons.Filled.Check
-        DayAdherence.SKIPPED, DayAdherence.MISSED -> Icons.Filled.Close
-        else -> null
-    }
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isToday) scheme.onSurface else scheme.onSurfaceVariant,
-            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-        )
-        Text(
-            date.dayOfMonth.toString(),
-            style = MaterialTheme.typography.labelMedium,
-            color = if (isToday) scheme.onSurface else scheme.onSurfaceVariant,
-            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
-        )
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .let { m ->
-                    // UNKNOWN (before the schedule started) reads as a faint outline, no fill.
-                    if (adherence == DayAdherence.UNKNOWN) m.border(1.dp, scheme.outlineVariant, shape)
-                    else m.clip(shape).background(fill)
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            if (icon != null) {
-                Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(18.dp))
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Text(
+                    day.date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault()),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isToday) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                )
+                if (row.dosesPerDay >= 4) {
+                    DoseFractionCell(
+                        taken = day.cells.count { it == DoseCellState.TAKEN },
+                        total = day.cells.size,
+                        failed = day.cells.any { it == DoseCellState.MISSED || it == DoseCellState.SKIPPED },
+                        size = cellSize,
+                    )
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        if (day.cells.isEmpty()) {
+                            DoseStateCell(DoseCellState.NONE, cellSize)
+                        } else {
+                            day.cells.forEach { DoseStateCell(it, cellSize) }
+                        }
+                    }
+                }
             }
         }
     }
@@ -204,6 +198,8 @@ private fun EmptyState(onAddMedication: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
         )
-        Button(onClick = onAddMedication) { Text(stringResource(R.string.action_add_medication)) }
+        Button(onClick = onAddMedication, shapes = ButtonDefaults.shapes()) {
+            Text(stringResource(R.string.action_add_medication))
+        }
     }
 }

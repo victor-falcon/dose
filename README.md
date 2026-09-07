@@ -6,6 +6,15 @@ missed). No backend, no account.
 
 Reference project (architecture inspiration): [unitto](https://github.com/sadellie/unitto).
 
+Website: [victorfalcon.es/dose](https://victorfalcon.es/dose)
+
+## Install
+
+[<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/victor-falcon/dose)
+
+Every push to `main` builds a signed APK and publishes it as a GitHub release,
+so Obtainium tracks this repo and auto-updates. App ID: `es.victorfalcon.dose`.
+
 ## Architecture decisions
 
 | Area | Decision | Why |
@@ -28,7 +37,7 @@ Reference project (architecture inspiration): [unitto](https://github.com/sadell
 + Glance home-screen widget.
 **v2 (deferred):** inventory + refill reminders, multiple profiles.
 
-## Package layout (`com.victorfalcon.dose`)
+## Package layout (code package `com.victorfalcon.dose`, app ID `es.victorfalcon.dose`)
 
 ```
 domain/        models (Medication, Schedule, DoseOccurrence) + OccurrenceGenerator

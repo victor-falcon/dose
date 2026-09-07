@@ -11,6 +11,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -35,22 +37,29 @@ fun medImageRes(key: String?): Int = when (key) {
 }
 
 /**
- * Rounded tile showing a medication's pill shape. The container uses the device's
- * dynamic (Material You) color; the shape is a tinted silhouette on top.
+ * Rounded tile showing a medication's pill shape: a tinted silhouette on the primary container,
+ * with the corner scaled to the tile so a 38 dp row icon and an 80 dp header icon read the same.
  * Pass [size] = null to let the caller size the tile via [modifier].
  */
 @Composable
-fun MedIcon(image: String?, modifier: Modifier = Modifier, size: Dp? = 48.dp) {
+fun MedIcon(
+    image: String?,
+    modifier: Modifier = Modifier,
+    size: Dp? = 48.dp,
+    shape: Shape = RoundedCornerShape((size ?: 48.dp) * 0.3f),
+    container: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+) {
     Surface(
         modifier = if (size != null) modifier.size(size) else modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceDim,
+        shape = shape,
+        color = container,
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 painter = painterResource(medImageRes(image)),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                tint = contentColor,
                 modifier = Modifier.fillMaxSize(0.55f),
             )
         }
