@@ -8,8 +8,20 @@ object Reminders {
     const val ACTION_TAKEN = "com.victorfalcon.dose.action.TAKEN"
     const val ACTION_SKIP = "com.victorfalcon.dose.action.SKIP"
     const val ACTION_SNOOZE = "com.victorfalcon.dose.action.SNOOZE"
+    const val ACTION_DATE_ROLL = "com.victorfalcon.dose.action.DATE_ROLL"
+
+    // Bulk actions for an hour that holds several doses (the grouped notification).
+    const val ACTION_TAKE_ALL = "com.victorfalcon.dose.action.TAKE_ALL"
+    const val ACTION_SNOOZE_ALL = "com.victorfalcon.dose.action.SNOOZE_ALL"
 
     const val EXTRA_OCCURRENCE_ID = "occurrenceId"
+
+    /** Minutes from midnight of the scheduled time — identifies the group of doses of one hour. */
+    const val EXTRA_HOUR_MINUTES = "hourMinutes"
+
+    // Reserved request code for the daily rollover alarm; can't collide with the
+    // occurrenceId*10+offset codes below.
+    const val MIDNIGHT_REQUEST_CODE = Int.MIN_VALUE
 
     const val UNIQUE_SWEEP_WORK = "reminder-sweep"
 
@@ -20,4 +32,17 @@ object Reminders {
     // four PendingIntents of one dose stay distinct. Assumes id * 10 fits in an Int
     // (~214M doses); revisit only if that ever becomes plausible.
     fun requestCode(occurrenceId: Long, actionOffset: Int): Int = (occurrenceId * 10 + actionOffset).toInt()
+
+    /**
+     * Notification id for a whole hour's group of doses. Offset well past any plausible
+     * occurrence id so a group and a single dose never fight over the same notification.
+     */
+    fun groupNotificationId(hourMinutes: Int): Int = GROUP_ID_BASE + hourMinutes
+
+    /** Request code for one action of an hour's group, in its own namespace. */
+    fun groupRequestCode(hourMinutes: Int, actionOffset: Int): Int =
+        GROUP_REQUEST_BASE + hourMinutes * 10 + actionOffset
+
+    private const val GROUP_ID_BASE = 900_000_000
+    private const val GROUP_REQUEST_BASE = 800_000_000
 }

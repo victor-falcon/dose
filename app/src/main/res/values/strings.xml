@@ -64,7 +64,7 @@
     <string name="action_save">Save</string>
     <string name="action_back">Back</string>
     <string name="action_remove">Remove</string>
-    <string name="field_image">Image</string>
+    <string name="field_image">Shape</string>
     <string name="field_image_hint">Pick the pill shape</string>
     <string name="field_name">Name</string>
     <string name="field_dosage">Dosage (optional)</string>
@@ -82,4 +82,74 @@
     <string name="editor_interval_days">Repeat every (days)</string>
     <string name="editor_cycle_active">Days on</string>
     <string name="editor_cycle_rest">Days off</string>
+    <!-- Today -->
+    <string name="today_rest_of_day">The rest of the day</string>
+    <string name="today_now">Now</string>
+    <string name="today_right_now">right now</string>
+    <string name="today_in_minutes">in %1$d min</string>
+    <string name="today_in_hours">in %1$d h</string>
+    <string name="today_ago_minutes">%1$d min ago</string>
+    <string name="today_ago_hours">%1$d h ago</string>
+    <string name="today_progress">%1$d/%2$d</string>
+    <string name="today_all_done">All taken</string>
+    <string name="today_all_done_detail">%1$d of %2$d · nothing else until tomorrow</string>
+    <string name="dose_taken_at">Taken at %1$s</string>
+    <string name="dose_snooze_minutes">Snooze %1$d min</string>
+
+    <!-- Medication list -->
+    <string name="med_week_count">%1$d/%2$d</string>
+    <string name="med_week_label">this week</string>
+
+    <!-- Schedule summaries -->
+    <string name="sched_daily">Every day</string>
+    <string name="sched_daily_at">every day at %1$s</string>
+    <string name="sched_times_per_day">%1$d doses a day</string>
+    <string name="sched_every_n_days">every %1$d days</string>
+    <string name="sched_cycle">%1$d days on / %2$d off</string>
+
+    <!-- Medication detail -->
+    <string name="detail_schedule">Schedule</string>
+    <string name="detail_notes">Notes</string>
+    <string name="detail_since">Since %1$s</string>
+    <string name="detail_adherence">Adherence · last 2 weeks</string>
+    <string name="detail_adherence_percent">%1$d%%</string>
+    <string name="detail_adherence_detail">%1$d of %2$d doses</string>
+    <string name="detail_adherence_pending">%1$d still pending</string>
+    <string name="detail_axis_start">2 weeks ago</string>
+    <string name="detail_axis_end">today</string>
+    <string name="detail_recent">Recent doses</string>
+    <string name="legend_taken">taken</string>
+    <string name="legend_missed">missed</string>
+    <string name="legend_skipped">skipped</string>
+    <string name="legend_pending">pending</string>
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+
+    <!-- Focus screen (from a notification or a widget dose) -->
+    <string name="focus_position">Dose %1$d of %2$d</string>
+    <string name="focus_open_medication">Details</string>
+    <string name="focus_take_all">Take all %1$d</string>
+    <string name="focus_hour_done">Nothing left at this time</string>
+    <string name="action_close">Close</string>
+
+    <!-- Widget -->
+    <string name="widget_all_done">All taken</string>
+    <string name="widget_day_progress">%1$d of %2$d</string>
+    <string name="widget_doses_at">%1$s · %2$d doses</string>
+    <string name="widget_take_all_short">All</string>
+    <string name="widget_next">next</string>
+
+    <!-- Notifications -->
+    <string name="notification_group_title">%1$d doses at %2$s</string>
+    <string name="notification_take_all">Take all %1$d</string>
+    <string name="notification_open">Open</string>
+    <string name="settings_dynamic_color_detail">Use the colors from your wallpaper</string>
+    <string name="settings_reminders">Reminders</string>
+    <string name="settings_backup_detail">One JSON file with medications, schedules and history.</string>
+    <string name="widget_doses_count">%1$d doses</string>
+    <string name="widget_tap_hint">tap one to open it</string>
+    <string name="today_nothing_pending">Nothing left today</string>
+    <string name="today_exact_alarm_title">Reminders may arrive late</string>
+    <string name="today_exact_alarm_body">Allow alarms and reminders so doses are notified on time</string>
+    <string name="today_nothing_pending_detail">%1$d of %2$d taken</string>
 </resources>

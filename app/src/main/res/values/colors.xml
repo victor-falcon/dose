@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0B6E4F</color>
+
+    <!-- "Dose taken" green, mirrored from DoseStateColors in Theme.kt for the widget: Glance
+         resolves a color resource per configuration, which is how the widget follows dark mode. -->
+    <color name="dose_taken">#FF2E7D32</color>
 </resources>

@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sizes match DoseWidget's Responsive set: 4x1 slim, 2x2 grouped, 4x2 (the default), and 5x3 for
+  the whole day. minWidth/minHeight stay small enough that the 2x2 and slim layouts are reachable.
+-->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="180dp"
-    android:minHeight="110dp"
-    android:targetCellWidth="3"
+    android:minWidth="140dp"
+    android:minHeight="60dp"
+    android:minResizeWidth="140dp"
+    android:minResizeHeight="60dp"
+    android:maxResizeWidth="360dp"
+    android:maxResizeHeight="320dp"
+    android:targetCellWidth="4"
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/glance_default_loading_layout"

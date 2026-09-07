@@ -1,27 +1,31 @@
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class,
+    androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class,
+)
+
 package com.victorfalcon.dose.ui
 
+import android.text.format.DateFormat
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFloatingActionButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MediumFloatingActionButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,10 +33,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -42,31 +50,44 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.victorfalcon.dose.R
+import com.victorfalcon.dose.ui.dose.DoseFocusScreen
 import com.victorfalcon.dose.ui.editor.MedEditorScreen
 import com.victorfalcon.dose.ui.meds.MedDetailScreen
 import com.victorfalcon.dose.ui.meds.MedicationsScreen
 import com.victorfalcon.dose.ui.settings.SettingsScreen
 import com.victorfalcon.dose.ui.today.TodayScreen
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-// Top-level destinations (the bottom-bar tabs). @Serializable so the back
-// stack survives config changes and process death.
+// Top-level destinations (the bottom-bar tabs). @Serializable so the back stack survives
+// config changes and process death.
 @Serializable private data object Today : NavKey
 @Serializable private data object Medications : NavKey
 
 // Detail destinations.
 @Serializable private data class MedEditor(val medicationId: Long? = null) : NavKey
 @Serializable private data class MedDetail(val medicationId: Long) : NavKey
+@Serializable private data class DoseFocus(val occurrenceId: Long) : NavKey
 @Serializable private data object SettingsDest : NavKey
 
-private enum class TopLevelTab(val key: NavKey, val icon: ImageVector, val labelRes: Int) {
-    TODAY(Today, Icons.Filled.CheckCircle, R.string.nav_today),
-    MEDICATIONS(Medications, Icons.AutoMirrored.Filled.List, R.string.nav_medications),
+private enum class TopLevelTab(val key: NavKey, val labelRes: Int) {
+    TODAY(Today, R.string.nav_today),
+    MEDICATIONS(Medications, R.string.nav_medications),
 }
 
+/**
+ * @param focusOccurrenceId a dose to open straight into the focus screen — set when the activity
+ * was launched from a reminder notification or from a dose in the widget.
+ */
 @Composable
-fun DoseApp() {
+fun DoseApp(focusOccurrenceId: Long? = null) {
     val backStack = rememberNavBackStack(Today)
+
+    LaunchedEffect(focusOccurrenceId) {
+        val id = focusOccurrenceId ?: return@LaunchedEffect
+        if (backStack.lastOrNull() != DoseFocus(id)) backStack.add(DoseFocus(id))
+    }
 
     // NavDisplay is the root: each destination owns its Scaffold (bars + opaque
     // background), so the predictive-back scaleOut shrinks the WHOLE screen as one
@@ -130,16 +151,21 @@ fun DoseApp() {
                     }
                 }
             }
+            // Detail and focus own their app bars: both carry actions of their own.
             entry<MedDetail> { key ->
-                DetailScaffold(titleRes = null, onBack = { backStack.removeLastOrNull() }) { padding ->
-                    Contained(padding) {
-                        MedDetailScreen(
-                            medicationId = key.medicationId,
-                            onEdit = { backStack.add(MedEditor(it)) },
-                            onArchived = { backStack.removeLastOrNull() },
-                        )
-                    }
-                }
+                MedDetailScreen(
+                    medicationId = key.medicationId,
+                    onBack = { backStack.removeLastOrNull() },
+                    onEdit = { backStack.add(MedEditor(it)) },
+                    onArchived = { backStack.removeLastOrNull() },
+                )
+            }
+            entry<DoseFocus> { key ->
+                DoseFocusScreen(
+                    occurrenceId = key.occurrenceId,
+                    onClose = { backStack.removeLastOrNull() },
+                    onOpenMedication = { backStack.add(MedDetail(it)) },
+                )
             }
             entry<SettingsDest> {
                 DetailScaffold(
@@ -154,7 +180,6 @@ fun DoseApp() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopLevelScaffold(
     tab: NavKey,
@@ -162,20 +187,29 @@ private fun TopLevelScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val titleRes = when (tab) {
-        Medications -> R.string.nav_medications
-        else -> R.string.nav_today
-    }
+    val isToday = tab == Today
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(stringResource(titleRes)) },
+            // The expressive large flexible bar carries the date as a subtitle and collapses
+            // into a small bar as the list scrolls.
+            LargeFlexibleTopAppBar(
+                title = {
+                    Text(stringResource(if (isToday) R.string.nav_today else R.string.nav_medications))
+                },
+                subtitle = if (isToday) {
+                    { Text(todayLabel()) }
+                } else {
+                    null
+                },
                 actions = {
                     IconButton(onClick = { backStack.add(SettingsDest) }) {
-                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
+                        Icon(
+                            painterResource(R.drawable.ic_tune),
+                            contentDescription = stringResource(R.string.action_settings),
+                        )
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -192,7 +226,15 @@ private fun TopLevelScaffold(
                                 backStack.add(t.key)
                             }
                         },
-                        icon = { Icon(t.icon, contentDescription = null) },
+                        icon = {
+                            when (t) {
+                                TopLevelTab.TODAY -> Icon(Icons.Filled.CheckCircle, contentDescription = null)
+                                TopLevelTab.MEDICATIONS -> Icon(
+                                    painterResource(R.drawable.ic_pill_capsule),
+                                    contentDescription = null,
+                                )
+                            }
+                        },
                         label = { Text(stringResource(t.labelRes)) },
                     )
                 }
@@ -200,10 +242,15 @@ private fun TopLevelScaffold(
         },
         floatingActionButton = {
             if (tab == Medications) {
-                MediumFloatingActionButton(onClick = { backStack.add(MedEditor()) }) {
+                MediumFloatingActionButton(
+                    onClick = { backStack.add(MedEditor()) },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = RoundedCornerShape(22.dp),
+                ) {
                     Icon(
                         Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.action_add_medication)
+                        contentDescription = stringResource(R.string.action_add_medication),
                     )
                 }
             }
@@ -212,7 +259,16 @@ private fun TopLevelScaffold(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Today's date the way the platform writes it in the user's locale ("lunes, 7 de septiembre"). */
+@Composable
+private fun todayLabel(): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val formatter = remember(locale) {
+        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM"), locale)
+    }
+    return remember(formatter) { LocalDate.now().format(formatter) }
+}
+
 @Composable
 private fun DetailScaffold(
     titleRes: Int?,
@@ -248,16 +304,22 @@ private fun Contained(padding: PaddingValues, screen: @Composable () -> Unit) {
 private const val SLIDE_MS = 350
 private const val FADE_MS = 180
 private const val PARALLAX = 4 // the reveal-side screen moves width / PARALLAX
-private const val TAB_FADE_MS = 700 // matches the Navigation3 default crossfade
+// Material fade-through: the outgoing screen leaves first, then the new one arrives.
+private const val TAB_FADE_OUT_MS = 90
+private const val TAB_FADE_IN_MS = 220
 
-private fun isTopLevelKey(key: Any): Boolean =
-    key == Today.toString() || key == Medications.toString()
+// Compares the keys themselves: comparing a NavKey to Today.toString() is never true, which
+// is what made tab switches animate like a forward push.
+private fun isTopLevelKey(key: Any?): Boolean = key == Today || key == Medications
 
-// Bottom-nav tab switch: plain crossfade, no directional slide.
+// Bottom-nav tab switch: Material fade-through. Tabs are siblings, not a push — the outgoing
+// screen fades out and the incoming one fades in with a slight grow, so nothing suggests a
+// screen you could come back from (pressing back here leaves the app).
 private fun tabTransition(): ContentTransform =
     ContentTransform(
-        targetContentEnter = fadeIn(tween(TAB_FADE_MS)),
-        initialContentExit = fadeOut(tween(TAB_FADE_MS)),
+        targetContentEnter = fadeIn(tween(TAB_FADE_IN_MS, delayMillis = TAB_FADE_OUT_MS)) +
+            scaleIn(tween(TAB_FADE_IN_MS, delayMillis = TAB_FADE_OUT_MS), initialScale = 0.94f),
+        initialContentExit = fadeOut(tween(TAB_FADE_OUT_MS)),
     )
 
 // Forward: the new screen slides fully in from the right; the current one

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.File
 
 plugins {
     // Kotlin support is built into AGP 9+, so no kotlin-android plugin here.
@@ -9,21 +10,46 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+/**
+ * Signing credentials come from ~/.gradle/gradle.properties (or env vars on CI), never from the
+ * repo. If they're missing the release build stays unsigned rather than failing, so a checkout
+ * without the key can still build and test.
+ */
+fun secret(name: String): String? =
+    (project.findProperty(name) as String?) ?: System.getenv(name)
+
+val uploadKeystore: File? = secret("DOSE_STORE_FILE")?.let(::File)?.takeIf { it.exists() }
+
 android {
     namespace = "com.victorfalcon.dose"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.victorfalcon.dose"
+        // Reverse-DNS of victorfalcon.es (the domain we actually own), and it matches the
+        // package reserved on Play. Permanent once published — the code package stays
+        // com.victorfalcon.dose, which AGP allows and nothing public sees.
+        applicationId = "es.victorfalcon.dose"
         minSdk = 31
-        targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        targetSdk = 37
+        versionCode = 2
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (uploadKeystore != null) {
+            create("release") {
+                storeFile = uploadKeystore
+                storePassword = secret("DOSE_STORE_PASSWORD")
+                keyAlias = secret("DOSE_KEY_ALIAS")
+                keyPassword = secret("DOSE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

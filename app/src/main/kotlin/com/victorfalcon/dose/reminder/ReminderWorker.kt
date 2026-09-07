@@ -31,6 +31,7 @@ class ReminderWorker @AssistedInject constructor(
         repository.getActiveSchedules().forEach { materializer.materialize(it) }
         repository.markMissedBefore(now.minusHours(ReminderPolicy.GRACE_HOURS))
         scheduler.syncUpcoming(now)
+        scheduler.scheduleDailyRollover() // keep the midnight widget rollover armed
         return Result.success()
     }
 }
