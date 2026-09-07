@@ -43,7 +43,9 @@ jobs:
         run: |
           version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
           tag="v$version-${{ github.run_number }}"
-          mv app/build/outputs/apk/release/app-release.apk "dose-$tag.apk"
-          gh release create "$tag" "dose-$tag.apk" \
-            --title "$tag" \
-            --notes "Built from ${{ github.sha }}"
+          # Fixed asset name: /releases/latest/download/dose.apk is a permalink only if
+          # the file name never changes. The tag still carries the version for Obtainium.
+          mv app/build/outputs/apk/release/app-release.apk dose.apk
+          sha=$(sha256sum dose.apk | cut -d' ' -f1)
+          printf '%s\n' "Built from ${{ github.sha }}" "" 'SHA-256 (`dose.apk`):' '```' "$sha" '```' > notes.md
+          gh release create "$tag" dose.apk --title "$tag" --notes-file notes.md
