@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.victorfalcon.dose.R
+import com.victorfalcon.dose.domain.model.DoseStatus
 import com.victorfalcon.dose.domain.model.DoseView
 import com.victorfalcon.dose.ui.common.DoseShapes
 import com.victorfalcon.dose.ui.common.MedIcon
@@ -61,8 +62,8 @@ import java.time.format.FormatStyle
 
 /**
  * "Tomar dosis": the focused screen a notification or a widget dose opens into. One dose, one
- * huge button, no navigation bar — and when the hour holds several doses it becomes a queue with
- * a bulk "take all N".
+ * huge button, no navigation bar — and when more than one dose is already owed it becomes a
+ * queue, with a dot per dose and a bulk "take all N".
  */
 @Composable
 fun DoseFocusScreen(
@@ -116,13 +117,10 @@ fun DoseFocusScreen(
                 .padding(padding)
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         ) {
-            if (state.isQueue) {
-                QueueProgress(total = state.total, resolved = state.resolved)
-                Spacer(Modifier.height(8.dp))
-            }
             val current = state.current
             if (current == null) {
-                HourFinished(state, onClose)
+                // Nothing to show yet on the very first frame — don't flash "all done".
+                if (state.finished) HourFinished(state, onClose)
                 return@Column
             }
             DoseBody(
@@ -132,33 +130,10 @@ fun DoseFocusScreen(
             )
             Actions(
                 state = state,
-                dose = current,
-                onTake = { viewModel.take(current.occurrenceId) },
+                onTake = { viewModel.take(current) },
                 onTakeAll = viewModel::takeAll,
-                onSnooze = { viewModel.snooze(current.occurrenceId) },
-                onSkip = { viewModel.skip(current.occurrenceId) },
-            )
-        }
-    }
-}
-
-/** One segment per dose of the hour, so the queue's length is visible up front. */
-@Composable
-private fun QueueProgress(total: Int, resolved: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        repeat(total) { index ->
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(6.dp)
-                    .background(
-                        color = if (index < resolved.coerceAtLeast(1)) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceContainerHighest,
-                        shape = RoundedCornerShape(3.dp),
-                    ),
+                onSnooze = { viewModel.snooze(current) },
+                onSkip = { viewModel.skip(current) },
             )
         }
     }
@@ -227,7 +202,6 @@ private fun DoseBody(dose: DoseView, notes: String?, modifier: Modifier = Modifi
 @Composable
 private fun Actions(
     state: DoseFocusUiState,
-    dose: DoseView,
     onTake: () -> Unit,
     onTakeAll: () -> Unit,
     onSnooze: () -> Unit,
@@ -285,27 +259,29 @@ private fun Actions(
                 Text(stringResource(R.string.dose_skip))
             }
         }
-        DayDots(taken = state.dayTaken, total = state.dayTotal, current = dose)
+        QueueDots(queue = state.queue, currentIndex = state.currentIndex)
     }
 }
 
-/** The day at a glance under the actions: how much is done, how much is left. */
+/** The queue under the actions: one dot per dose owed, so its length is honest. */
 @Composable
-private fun DayDots(taken: Int, total: Int, current: DoseView) {
-    if (total == 0) return
+private fun QueueDots(queue: List<DoseView>, currentIndex: Int) {
+    if (queue.isEmpty()) return
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        repeat(total.coerceAtMost(12)) { index ->
+        // A dozen dots is all the row fits; a backlog longer than that reads as "plenty".
+        queue.take(12).forEachIndexed { index, dose ->
             Box(
                 Modifier
                     .size(14.dp)
                     .background(
                         color = when {
-                            index < taken -> doseStateColors.taken
-                            index == taken -> MaterialTheme.colorScheme.primary
+                            dose.status == DoseStatus.TAKEN -> doseStateColors.taken
+                            dose.status != DoseStatus.PENDING -> MaterialTheme.colorScheme.outline
+                            index == currentIndex -> MaterialTheme.colorScheme.primary
                             else -> MaterialTheme.colorScheme.surfaceContainerHighest
                         },
                         shape = RoundedCornerShape(50),
@@ -342,13 +318,16 @@ private fun HourFinished(state: DoseFocusUiState, onClose: () -> Unit) {
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
-        Text(
-            stringResource(R.string.today_all_done_detail, state.dayTaken, state.dayTotal),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 6.dp, bottom = 28.dp),
-        )
+        if (state.dayFinished) {
+            Text(
+                stringResource(R.string.today_all_done_detail, state.dayTaken, state.dayTotal),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+        Spacer(Modifier.height(28.dp))
         Button(onClick = onClose, shapes = ButtonDefaults.shapes()) {
             Text(stringResource(R.string.action_close))
         }

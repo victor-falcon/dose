@@ -120,7 +120,7 @@ class TodayViewModel @Inject constructor(
     fun snooze(occurrenceId: Long) {
         viewModelScope.launch {
             val minutes = settings.settings.first().defaultSnoozeMinutes
-            scheduler.schedule(occurrenceId, LocalDateTime.now().plusMinutes(minutes.toLong()))
+            scheduler.snooze(occurrenceId, LocalDateTime.now().plusMinutes(minutes.toLong()))
         }
     }
 

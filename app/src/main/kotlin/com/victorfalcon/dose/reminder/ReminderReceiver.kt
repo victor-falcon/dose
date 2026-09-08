@@ -62,6 +62,11 @@ class ReminderReceiver : BroadcastReceiver() {
 
     private suspend fun handleFire(id: Long) {
         val occurrence = repository.getOccurrence(id) ?: return
+        // A snooze outranks this alarm: stay quiet and come back when it runs out.
+        scheduler.snoozedUntil(id)?.let {
+            scheduler.schedule(id, it)
+            return
+        }
         when (val step = ReminderPolicy.step(occurrence.scheduledAt, LocalDateTime.now(), occurrence.status)) {
             ReminderStep.Done -> notifier.cancel(id)
             ReminderStep.Miss -> {
@@ -133,7 +138,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val at = LocalDate.now().atTime(LocalTime.ofSecondOfDay(hourMinutes * 60L))
         val minutes = settings.settings.first().defaultSnoozeMinutes
         val target = LocalDateTime.now().plusMinutes(minutes.toLong())
-        pendingAt(at).forEach { scheduler.schedule(it.id, target) }
+        pendingAt(at).forEach { scheduler.snooze(it.id, target) }
         notifier.cancelGroup(hourMinutes)
     }
 
@@ -148,7 +153,7 @@ class ReminderReceiver : BroadcastReceiver() {
     private suspend fun snooze(id: Long) {
         if (id < 0) return
         val minutes = settings.settings.first().defaultSnoozeMinutes
-        scheduler.schedule(id, LocalDateTime.now().plusMinutes(minutes.toLong()))
+        scheduler.snooze(id, LocalDateTime.now().plusMinutes(minutes.toLong()))
         notifier.cancel(id)
     }
 }
