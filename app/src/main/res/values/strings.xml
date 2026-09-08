@@ -28,7 +28,7 @@
     <string name="settings_sponsor">Sponsor on GitHub</string>
     <string name="settings_sponsor_detail">github.com/sponsors/victor-falcon</string>
     <string name="settings_follow">Follow @victoor</string>
-    <string name="settings_follow_detail">twitter.com/victoor</string>
+    <string name="settings_follow_detail">x.com/victoor</string>
     <string name="settings_snooze">Default snooze</string>
     <string name="settings_snooze_detail">Minutes a dose is pushed forward</string>
     <!-- Spoken label for the bare-number snooze chips -->

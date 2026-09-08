@@ -74,7 +74,7 @@ import kotlinx.coroutines.launch
 private val SNOOZE_PRESETS = listOf(5, 10, 15, 30, 60)
 private const val BACKUP_FILENAME = "dose-backup.json"
 private const val SPONSOR_URL = "https://github.com/sponsors/victor-falcon"
-private const val FOLLOW_URL = "https://twitter.com/victoor"
+private const val FOLLOW_URL = "https://x.com/victoor"
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {

@@ -27,7 +27,7 @@
     <string name="settings_sponsor">Patrocinar en GitHub</string>
     <string name="settings_sponsor_detail">github.com/sponsors/victor-falcon</string>
     <string name="settings_follow">Seguir a @victoor</string>
-    <string name="settings_follow_detail">twitter.com/victoor</string>
+    <string name="settings_follow_detail">x.com/victoor</string>
     <string name="settings_snooze">Posposición predeterminada</string>
     <string name="settings_snooze_detail">Minutos que se retrasa una dosis</string>
     <!-- Etiqueta hablada de los chips de posposición, que solo muestran el número -->
