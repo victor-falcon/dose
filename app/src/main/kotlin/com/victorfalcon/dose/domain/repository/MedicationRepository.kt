@@ -48,6 +48,9 @@ interface MedicationRepository {
 
     suspend fun setOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?)
 
+    /** Push a dose's reminder back to [until]; survives process death, unlike the alarm alone. */
+    suspend fun snoozeOccurrence(id: Long, until: LocalDateTime)
+
     /** Record an ad-hoc taken dose for a PRN medication. */
     suspend fun logAsNeededDose(medicationId: Long, at: LocalDateTime)
 

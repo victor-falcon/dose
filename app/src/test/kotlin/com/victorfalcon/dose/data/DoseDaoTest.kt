@@ -215,4 +215,50 @@ class DoseDaoTest {
         assertEquals(DoseStatus.TAKEN, updated.status)
         assertEquals(takenAt, updated.takenAt)
     }
+
+    @Test fun `snoozing an occurrence round-trips and resolving it clears the snooze`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Creatine"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = today, times = listOf(LocalTime.of(11, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 0)
+
+        val start = LocalDateTime.of(today, LocalTime.MIN)
+        val occ = repo.observeOccurrencesBetween(start, start.plusDays(1)).first().single()
+        assertNull(occ.snoozedUntil)
+
+        val until = LocalDateTime.of(today, LocalTime.of(11, 10))
+        repo.snoozeOccurrence(occ.id, until)
+
+        assertEquals(until, dao.getOccurrence(occ.id)!!.snoozedUntil)
+        // The alarm scheduler reads it off the pending row, so it has to survive that query too.
+        assertEquals(until, repo.getPendingOccurrencesUntil(start.plusDays(1)).single().snoozedUntil)
+        // And the joined projection the focus screen builds its queue from.
+        assertEquals(
+            until,
+            repo.observeDosesBetween(start, start.plusDays(1), activeOnly = true).first().single().snoozedUntil,
+        )
+
+        repo.setOccurrenceStatus(occ.id, DoseStatus.TAKEN, until)
+
+        assertNull(dao.getOccurrence(occ.id)!!.snoozedUntil)
+    }
+
+    @Test fun `the missed sweep clears a snooze it overrides`() = runTest {
+        val medId = repo.saveMedicationWithSchedule(
+            Medication(name = "Adiro"),
+            Schedule(medicationId = 0, type = ScheduleType.DAILY_TIMES, startDate = today, times = listOf(LocalTime.of(13, 0))),
+        )
+        materializer.materialize(repo.getSchedule(medId)!!, today = today, windowDays = 0)
+
+        val start = LocalDateTime.of(today, LocalTime.MIN)
+        val occ = repo.observeOccurrencesBetween(start, start.plusDays(1)).first().single()
+        repo.snoozeOccurrence(occ.id, LocalDateTime.of(today, LocalTime.of(13, 10)))
+
+        assertEquals(1, repo.markMissedBefore(LocalDateTime.of(today, LocalTime.of(23, 0))))
+
+        val swept = dao.getOccurrence(occ.id)!!
+        assertEquals(DoseStatus.MISSED, swept.status)
+        assertNull(swept.snoozedUntil)
+    }
 }

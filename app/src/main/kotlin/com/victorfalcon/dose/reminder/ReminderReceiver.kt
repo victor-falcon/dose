@@ -62,10 +62,16 @@ class ReminderReceiver : BroadcastReceiver() {
 
     private suspend fun handleFire(id: Long) {
         val occurrence = repository.getOccurrence(id) ?: return
+        // A snooze outranks this alarm: stay quiet and come back when it runs out.
+        occurrence.snoozedUntil?.takeIf { it.isAfter(LocalDateTime.now()) }?.let {
+            scheduler.schedule(id, it)
+            return
+        }
         when (val step = ReminderPolicy.step(occurrence.scheduledAt, LocalDateTime.now(), occurrence.status)) {
             ReminderStep.Done -> notifier.cancel(id)
             ReminderStep.Miss -> {
                 repository.setOccurrenceStatus(id, DoseStatus.MISSED, null)
+                scheduler.cancel(id)
                 notifier.cancel(id)
             }
             is ReminderStep.Notify -> {
@@ -100,20 +106,7 @@ class ReminderReceiver : BroadcastReceiver() {
         scheduler.cancel(id)
         notifier.cancel(id)
         // Keep the hour's grouped notification honest: refresh it, or drop it when done.
-        occurrence?.let { refreshGroup(it.scheduledAt) }
-    }
-
-    private suspend fun refreshGroup(scheduledAt: LocalDateTime) {
-        val hourMinutes = scheduledAt.toLocalTime().toSecondOfDay() / 60
-        val pending = pendingAt(scheduledAt)
-        when {
-            pending.isEmpty() -> notifier.cancelGroup(hourMinutes)
-            pending.size > 1 -> notifier.showGroup(
-                scheduledAt,
-                pending.map { it to repository.getMedication(it.medicationId) },
-            )
-            else -> notifier.cancelGroup(hourMinutes)
-        }
+        occurrence?.let { notifier.refreshGroup(it.scheduledAt) }
     }
 
     private suspend fun takeAll(hourMinutes: Int) {
@@ -133,7 +126,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val at = LocalDate.now().atTime(LocalTime.ofSecondOfDay(hourMinutes * 60L))
         val minutes = settings.settings.first().defaultSnoozeMinutes
         val target = LocalDateTime.now().plusMinutes(minutes.toLong())
-        pendingAt(at).forEach { scheduler.schedule(it.id, target) }
+        pendingAt(at).forEach { scheduler.snooze(it.id, target) }
         notifier.cancelGroup(hourMinutes)
     }
 
@@ -148,7 +141,7 @@ class ReminderReceiver : BroadcastReceiver() {
     private suspend fun snooze(id: Long) {
         if (id < 0) return
         val minutes = settings.settings.first().defaultSnoozeMinutes
-        scheduler.schedule(id, LocalDateTime.now().plusMinutes(minutes.toLong()))
+        scheduler.snooze(id, LocalDateTime.now().plusMinutes(minutes.toLong()))
         notifier.cancel(id)
     }
 }

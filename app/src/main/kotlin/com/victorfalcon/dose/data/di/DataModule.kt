@@ -2,6 +2,9 @@ package com.victorfalcon.dose.data.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 import com.victorfalcon.dose.data.DoseDao
 import com.victorfalcon.dose.data.DoseDatabase
 import com.victorfalcon.dose.data.RoomMedicationRepository
@@ -18,12 +21,25 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    /**
+     * Snooze targets became a column, and real medication histories now live on real phones —
+     * so this jump gets a hand-written migration. INTEGER because `Converters` stores a
+     * `LocalDateTime` as UTC epoch-seconds; nullable, no default, matching `takenAt`.
+     */
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("ALTER TABLE dose_occurrences ADD COLUMN snoozedUntil INTEGER")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): DoseDatabase =
-        // ponytail: destructive fallback is fine pre-v1 (schema not public yet).
-        // Add real migrations before shipping v1.
         Room.databaseBuilder(context, DoseDatabase::class.java, "dose.db")
+            .addMigrations(MIGRATION_2_3)
+            // Only the net for version jumps nobody wrote a migration for. Anything reachable
+            // from a released build must be listed above instead: dropping the tables here
+            // would take the user's medication history with it.
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 

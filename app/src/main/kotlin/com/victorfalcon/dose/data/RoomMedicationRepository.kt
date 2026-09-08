@@ -80,6 +80,11 @@ class RoomMedicationRepository @Inject constructor(
         widgetRefresher.refresh()
     }
 
+    override suspend fun snoozeOccurrence(id: Long, until: LocalDateTime) {
+        dao.snoozeOccurrence(id, until)
+        widgetRefresher.refresh()
+    }
+
     // ponytail: the unique (medicationId, scheduledAt) index means two PRN logs in the
     // same second collide and the second is ignored. Not a real-world scenario for v1.
     override suspend fun logAsNeededDose(medicationId: Long, at: LocalDateTime) {

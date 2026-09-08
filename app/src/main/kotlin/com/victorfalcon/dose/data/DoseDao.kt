@@ -64,7 +64,8 @@ interface DoseDao {
     @Query(
         """
         SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
-               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt,
+               o.snoozedUntil AS snoozedUntil
         FROM dose_occurrences o
         JOIN medications m ON m.id = o.medicationId
         WHERE o.scheduledAt >= :start AND o.scheduledAt < :end
@@ -78,7 +79,8 @@ interface DoseDao {
     @Query(
         """
         SELECT o.id AS occurrenceId, o.medicationId AS medicationId, m.name AS name, m.dosage AS dosage,
-               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt
+               m.image AS image, o.scheduledAt AS scheduledAt, o.status AS status, o.takenAt AS takenAt,
+               o.snoozedUntil AS snoozedUntil
         FROM dose_occurrences o
         JOIN medications m ON m.id = o.medicationId
         WHERE o.medicationId = :medicationId
@@ -108,15 +110,22 @@ interface DoseDao {
     @Query("SELECT * FROM dose_occurrences WHERE id = :id")
     suspend fun getOccurrence(id: Long): DoseOccurrence?
 
-    @Query("UPDATE dose_occurrences SET status = :status, takenAt = :takenAt WHERE id = :id")
+    // Resolving a dose drops its snooze: the reminder it was pushing back is over.
+    @Query("UPDATE dose_occurrences SET status = :status, takenAt = :takenAt, snoozedUntil = NULL WHERE id = :id")
     suspend fun updateOccurrenceStatus(id: Long, status: DoseStatus, takenAt: LocalDateTime?)
+
+    @Query("UPDATE dose_occurrences SET snoozedUntil = :until WHERE id = :id")
+    suspend fun snoozeOccurrence(id: Long, until: LocalDateTime)
 
     // Pending doses due before :until (includes overdue) -> the alarm scheduler arms these.
     @Query("SELECT * FROM dose_occurrences WHERE status = 'PENDING' AND scheduledAt < :until ORDER BY scheduledAt")
     suspend fun getPendingOccurrencesUntil(until: LocalDateTime): List<DoseOccurrence>
 
     // Backstop MISSED sweep. 'PENDING'/'MISSED' must match the DoseStatus enum names.
-    @Query("UPDATE dose_occurrences SET status = 'MISSED' WHERE status = 'PENDING' AND scheduledAt < :threshold")
+    @Query(
+        "UPDATE dose_occurrences SET status = 'MISSED', snoozedUntil = NULL " +
+            "WHERE status = 'PENDING' AND scheduledAt < :threshold",
+    )
     suspend fun markMissedBefore(threshold: LocalDateTime): Int
 
     // --- Backup / restore ---

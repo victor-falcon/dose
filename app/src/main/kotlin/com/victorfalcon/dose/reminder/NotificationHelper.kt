@@ -13,8 +13,11 @@ import androidx.core.content.ContextCompat
 import com.victorfalcon.dose.MainActivity
 import com.victorfalcon.dose.R
 import com.victorfalcon.dose.domain.model.DoseOccurrence
+import com.victorfalcon.dose.domain.model.DoseStatus
 import com.victorfalcon.dose.domain.model.Medication
+import com.victorfalcon.dose.domain.repository.MedicationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -24,6 +27,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationHelper @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val repository: MedicationRepository,
 ) {
     private val manager = NotificationManagerCompat.from(context)
     private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
@@ -105,6 +109,22 @@ class NotificationHelper @Inject constructor(
             )
             .build()
         manager.notify(Reminders.groupNotificationId(hourMinutes), notification)
+    }
+
+    /**
+     * One dose of an hour just got answered: re-post the hour's group for whatever is still
+     * owed, or drop it once fewer than two doses are left. Cancelling outright would take the
+     * siblings' only reminder down with it.
+     */
+    suspend fun refreshGroup(scheduledAt: LocalDateTime) {
+        val pending = repository.observeOccurrencesBetween(scheduledAt, scheduledAt.plusMinutes(1))
+            .first()
+            .filter { it.status == DoseStatus.PENDING }
+        if (pending.size > 1) {
+            showGroup(scheduledAt, pending.map { it to repository.getMedication(it.medicationId) })
+        } else {
+            cancelGroup(scheduledAt.toLocalTime().toSecondOfDay() / 60)
+        }
     }
 
     fun cancel(occurrenceId: Long) = manager.cancel(occurrenceId.toInt())

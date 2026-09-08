@@ -33,6 +33,12 @@ class AlarmScheduler @Inject constructor(
         }
     }
 
+    /** Push a dose's reminder back to [until] and record it, so [syncUpcoming] respects it. */
+    suspend fun snooze(occurrenceId: Long, until: LocalDateTime) {
+        repository.snoozeOccurrence(occurrenceId, until)
+        schedule(occurrenceId, until)
+    }
+
     fun cancel(occurrenceId: Long) = alarmManager.cancel(firePendingIntent(occurrenceId))
 
     /** Arm an exact alarm at next local midnight so the widget rolls over to the new day
@@ -57,7 +63,7 @@ class AlarmScheduler @Inject constructor(
     /** Re-arm alarms for every pending dose within the window; overdue ones fire ~now. */
     suspend fun syncUpcoming(now: LocalDateTime = LocalDateTime.now()) {
         val pending = repository.getPendingOccurrencesUntil(now.plusHours(Reminders.WINDOW_HOURS))
-        pending.forEach { schedule(it.id, maxOf(it.scheduledAt, now)) }
+        pending.forEach { schedule(it.id, maxOf(it.snoozedUntil ?: it.scheduledAt, now)) }
     }
 
     private fun firePendingIntent(occurrenceId: Long): PendingIntent {

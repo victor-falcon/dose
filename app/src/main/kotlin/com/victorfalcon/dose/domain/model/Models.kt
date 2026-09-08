@@ -86,6 +86,8 @@ data class DoseOccurrence(
     val scheduledAt: LocalDateTime,
     val status: DoseStatus = DoseStatus.PENDING,
     val takenAt: LocalDateTime? = null,
+    /** Reminder pushed back to this moment; cleared as soon as the dose is resolved. */
+    val snoozedUntil: LocalDateTime? = null,
 )
 
 /** A dose joined with its medication, for display on Today / History. Not a table. */
@@ -98,4 +100,5 @@ data class DoseView(
     val scheduledAt: LocalDateTime,
     val status: DoseStatus,
     val takenAt: LocalDateTime?,
+    val snoozedUntil: LocalDateTime? = null,
 )
