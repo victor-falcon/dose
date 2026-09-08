@@ -31,6 +31,8 @@
     <string name="settings_follow_detail">twitter.com/victoor</string>
     <string name="settings_snooze">Default snooze</string>
     <string name="settings_snooze_detail">Minutes a dose is pushed forward</string>
+    <!-- Spoken label for the bare-number snooze chips -->
+    <string name="settings_snooze_minutes">%1$d minutes</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_detail">Sound, channels and Do Not Disturb</string>
     <string name="settings_exact_alarm">Exact alarms</string>

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +59,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -210,10 +213,26 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewMo
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             SNOOZE_PRESETS.forEach { minutes ->
+                                val selected = settings.defaultSnoozeMinutes == minutes
+                                val spoken = stringResource(R.string.settings_snooze_minutes, minutes)
                                 FilterChip(
-                                    selected = settings.defaultSnoozeMinutes == minutes,
+                                    selected = selected,
                                     onClick = { viewModel.setSnooze(minutes) },
                                     label = { Text(minutes.toString()) },
+                                    leadingIcon = if (selected) {
+                                        {
+                                            Icon(
+                                                Icons.Filled.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                    // The chip reads "10"; the unit only lives in the subtitle above,
+                                    // which a screen reader has long left behind by now.
+                                    modifier = Modifier.semantics { contentDescription = spoken },
                                 )
                             }
                         }
@@ -371,14 +390,7 @@ private fun SettingsRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Icon(painterResource(icon), contentDescription = null)
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        RowLabel(title, subtitle, Modifier.weight(1f))
         trailing()
     }
 }
@@ -402,18 +414,23 @@ private fun ChoiceRow(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Icon(painterResource(icon), contentDescription = null)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            RowLabel(title, subtitle)
         }
         control()
+    }
+}
+
+@Composable
+private fun RowLabel(title: String, subtitle: String?, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        if (subtitle != null) {
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
