@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
 data class DoseGroup(val time: LocalTime, val doses: List<DoseView>)
@@ -59,6 +60,33 @@ fun todayState(doses: List<DoseView>, asNeeded: List<Medication>, snoozeMinutes:
         snoozeMinutes = snoozeMinutes,
         loading = false,
     )
+}
+
+/** The four ways the hero card can word a dose's timing, and whether that wording means late. */
+enum class DoseTimingLabel(val late: Boolean) {
+    IN_MINUTES(late = false),
+    IN_HOURS(late = false),
+    MINUTES_AGO(late = true),
+    HOURS_AGO(late = true),
+}
+
+/** Which wording the hero card uses for a dose's timing, and the number that goes in it. */
+data class DoseTiming(val label: DoseTimingLabel, val amount: Long)
+
+/**
+ * How far off schedule the hero dose is, or null while it is due right now — the card already
+ * says "NOW · 3:30 PM", and "right now" beside that says the same thing twice. The dead band is
+ * a minute either side, so the label doesn't flicker in as the clock ticks past the hour. Pure.
+ */
+fun doseTiming(scheduledAt: LocalDateTime, now: LocalDateTime): DoseTiming? {
+    val minutes = ChronoUnit.MINUTES.between(now, scheduledAt)
+    return when {
+        minutes in -1..1 -> null
+        minutes >= 60 -> DoseTiming(DoseTimingLabel.IN_HOURS, minutes / 60)
+        minutes >= 2 -> DoseTiming(DoseTimingLabel.IN_MINUTES, minutes)
+        minutes > -60 -> DoseTiming(DoseTimingLabel.MINUTES_AGO, -minutes)
+        else -> DoseTiming(DoseTimingLabel.HOURS_AGO, -minutes / 60)
+    }
 }
 
 @HiltViewModel

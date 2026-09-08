@@ -23,9 +23,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +43,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +58,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -75,7 +81,6 @@ import com.victorfalcon.dose.ui.theme.doseStateColors
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.delay
 
 @Composable
@@ -193,8 +198,12 @@ private fun DayProgress(state: TodayUiState) {
         )
         Text(
             stringResource(R.string.today_progress, state.takenCount, state.totalCount),
-            style = MaterialTheme.typography.labelLarge,
+            // Tabular figures in a column wide enough for two digits: taking a dose must fill the
+            // bar, not shove it sideways as "9/10" becomes "10/10".
+            style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End,
+            modifier = Modifier.widthIn(min = 30.dp),
         )
     }
 }
@@ -237,11 +246,21 @@ private fun HeroDoseCard(
                     letterSpacing = 1.1.sp,
                     modifier = Modifier.weight(1f),
                 )
-                Text(
-                    relativeLabel(dose.scheduledAt),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // Only shown when the dose is actually early or late; on time it would just
+                // repeat the "NOW" beside it. labelMedium is already a medium weight, so the
+                // error tint is the whole difference a late dose needs.
+                val now = remember { LocalDateTime.now() }
+                doseTiming(dose.scheduledAt, now)?.let { timing ->
+                    Text(
+                        relativeLabel(timing),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (timing.label.late) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
+                }
             }
             Spacer(Modifier.height(14.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -404,7 +423,9 @@ private fun DayClearCard(taken: Int, total: Int) {
                         total,
                     ),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor,
+                    // A step down from the title, so the count reads as its detail and not as a
+                    // second headline.
+                    color = if (allTaken) stateColors.onTakenContainerVariant else contentColor,
                 )
             }
         }
@@ -427,8 +448,8 @@ private fun HourRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 20.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             group.time.format(timeFormatter),
@@ -436,64 +457,135 @@ private fun HourRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.End,
             maxLines = 1,
+            // Centred on the first row whatever the hour holds, so the time labels the top of the
+            // stack instead of drifting to its middle as doses are added.
             modifier = Modifier
-                .width(64.dp)
-                .padding(top = if (group.doses.size > 1) 14.dp else 20.dp),
+                .width(TimeGutterWidth)
+                .heightIn(min = DoseRowHeight)
+                .wrapContentHeight(Alignment.CenterVertically),
         )
+        // The card is the clip and the rows fill it edge to edge — a dose's state IS its band
+        // colour, so nothing frames the green. A fully taken hour reads as one solid block.
         Card(
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(22.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         ) {
-            Column(
-                modifier = Modifier.padding(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                group.doses.forEach { dose ->
-                    DoseLine(
-                        dose = dose,
-                        onToggle = { taken -> if (taken) onTaken(dose.occurrenceId) else onUndo(dose.occurrenceId) },
-                        onOpen = { onOpenMedication(dose.medicationId) },
+            var bandAbove: Color? = null
+            group.doses.forEach { dose ->
+                val colors = doseRowColors(dose.status)
+                // Two rows of the same band would merge into one shape without a hairline.
+                // Different bands need none — the colour change is already the separator.
+                if (bandAbove == colors.band) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = if (dose.status == DoseStatus.TAKEN) {
+                            doseStateColors.takenDivider
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
+                        },
                     )
                 }
+                DoseLine(
+                    dose = dose,
+                    colors = colors,
+                    onToggle = { taken -> if (taken) onTaken(dose.occurrenceId) else onUndo(dose.occurrenceId) },
+                    onOpen = { onOpenMedication(dose.medicationId) },
+                )
+                bandAbove = colors.band
             }
         }
     }
 }
 
+/**
+ * A dose row wears its state as a full-bleed band, so the status decides every colour in the row
+ * rather than one accent: the band, the tile behind the pill, and the two text weights. [onTile]
+ * also tints the take button, which every state keeps — a missed or skipped dose can still be
+ * taken late — so the button never looks pasted on top of the wrong colour.
+ */
+private data class DoseRowColors(
+    val band: Color,
+    val tile: Color,
+    val onTile: Color,
+    val name: Color,
+    val subtitle: Color,
+)
+
 @Composable
-private fun DoseLine(dose: DoseView, onToggle: (Boolean) -> Unit, onOpen: () -> Unit) {
-    val taken = dose.status == DoseStatus.TAKEN
+private fun doseRowColors(status: DoseStatus): DoseRowColors {
+    val scheme = MaterialTheme.colorScheme
     val stateColors = doseStateColors
+    return when (status) {
+        DoseStatus.TAKEN -> DoseRowColors(
+            band = stateColors.takenContainer,
+            tile = stateColors.takenTile,
+            onTile = stateColors.onTakenContainer,
+            name = stateColors.onTakenContainer,
+            subtitle = stateColors.onTakenContainerVariant,
+        )
+        DoseStatus.MISSED -> DoseRowColors(
+            band = stateColors.missedContainer,
+            tile = stateColors.missedTile,
+            onTile = stateColors.onMissedContainer,
+            name = stateColors.onMissedContainer,
+            subtitle = stateColors.onMissedContainerVariant,
+        )
+        // Skipped was a decision, not a failure: it keeps the card surface and is only dimmed.
+        DoseStatus.SKIPPED -> DoseRowColors(
+            band = scheme.surfaceContainer,
+            tile = scheme.surfaceContainerHighest,
+            onTile = scheme.outline,
+            name = scheme.onSurfaceVariant,
+            subtitle = scheme.outline,
+        )
+        DoseStatus.PENDING -> DoseRowColors(
+            band = scheme.surfaceContainer,
+            tile = scheme.primaryContainer,
+            onTile = scheme.onPrimaryContainer,
+            name = scheme.onSurface,
+            subtitle = scheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun DoseLine(
+    dose: DoseView,
+    colors: DoseRowColors,
+    onToggle: (Boolean) -> Unit,
+    onOpen: () -> Unit,
+) {
     Surface(
         onClick = onOpen,
-        shape = RoundedCornerShape(16.dp),
-        color = if (taken) stateColors.takenContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+        // Square: the hour card's corners are what round the first and last row.
+        shape = RectangleShape,
+        color = colors.band,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.padding(start = 6.dp, top = 4.dp, end = 4.dp, bottom = 4.dp),
+            modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 8.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             MedIcon(
                 dose.image,
-                size = 38.dp,
-                container = if (taken) stateColors.takenContainer else MaterialTheme.colorScheme.primaryContainer,
-                contentColor = if (taken) stateColors.onTakenContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+                size = 40.dp,
+                container = colors.tile,
+                contentColor = colors.onTile,
             )
             Column(Modifier.weight(1f)) {
                 Text(
                     dose.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (taken) stateColors.onTakenContainer else MaterialTheme.colorScheme.onSurface,
+                    color = colors.name,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                // The subtitle carries the outcome when there is one: a failed dose can still be
-                // taken late, so it keeps its button — but it must not look merely pending.
+                // The subtitle carries the outcome when there is one; the band is what says the
+                // dose isn't merely pending, so the copy stays short.
                 val subtitle = when {
-                    taken && dose.takenAt != null ->
+                    dose.status == DoseStatus.TAKEN && dose.takenAt != null ->
                         stringResource(R.string.dose_taken_at, dose.takenAt.toLocalTime().format(timeFormatter))
                     dose.status == DoseStatus.MISSED -> stringResource(R.string.dose_missed)
                     dose.status == DoseStatus.SKIPPED -> stringResource(R.string.dose_skipped)
@@ -503,20 +595,18 @@ private fun DoseLine(dose: DoseView, onToggle: (Boolean) -> Unit, onOpen: () -> 
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
-                        color = when {
-                            taken -> stateColors.onTakenContainer
-                            dose.status == DoseStatus.MISSED -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        color = colors.subtitle,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
             DoseTakeButton(
-                taken = taken,
+                taken = dose.status == DoseStatus.TAKEN,
                 onToggle = onToggle,
-                size = 44.dp,
+                size = 44.dp, // tallest thing in the row: keep DoseRowHeight in step with it
+                untakenContainer = colors.tile,
+                untakenContent = colors.onTile,
             )
         }
     }
@@ -535,6 +625,9 @@ private fun AsNeededRow(medications: List<Medication>, onLogNow: (Long) -> Unit)
             AssistChip(
                 onClick = { onLogNow(med.id) },
                 label = { Text(med.name) },
+                // An AssistChip's own 32 dp is well under a thumb; grown to 40 dp, with the
+                // corner following so it stays a stadium rather than turning into a box.
+                modifier = Modifier.height(40.dp),
                 leadingIcon = {
                     Icon(
                         Icons.Filled.Add,
@@ -542,6 +635,7 @@ private fun AsNeededRow(medications: List<Medication>, onLogNow: (Long) -> Unit)
                         modifier = Modifier.size(AssistChipDefaults.IconSize),
                     )
                 },
+                shape = RoundedCornerShape(20.dp),
             )
         }
     }
@@ -575,19 +669,30 @@ private fun EmptyState(onAddMedication: () -> Unit) {
 }
 
 @Composable
-private fun relativeLabel(at: LocalDateTime): String {
-    val now = remember { LocalDateTime.now() }
-    val minutes = ChronoUnit.MINUTES.between(now, at)
-    return when {
-        minutes in -1..1 -> stringResource(R.string.today_right_now)
-        minutes in 2..59 -> stringResource(R.string.today_in_minutes, minutes)
-        minutes >= 60 -> stringResource(R.string.today_in_hours, minutes / 60)
-        minutes in -59..-2 -> stringResource(R.string.today_ago_minutes, -minutes)
-        else -> stringResource(R.string.today_ago_hours, -minutes / 60)
-    }
-}
+private fun relativeLabel(timing: DoseTiming): String = stringResource(
+    when (timing.label) {
+        DoseTimingLabel.IN_MINUTES -> R.string.today_in_minutes
+        DoseTimingLabel.IN_HOURS -> R.string.today_in_hours
+        DoseTimingLabel.MINUTES_AGO -> R.string.today_ago_minutes
+        DoseTimingLabel.HOURS_AGO -> R.string.today_ago_hours
+    },
+    timing.amount,
+)
 
 /** Long enough for the take button's morph to read, short enough not to feel laggy. */
 private const val HERO_LINGER_MS = 420L
+
+/**
+ * The take button plus the row's padding — and what the time gutter centres its label on. Keep it
+ * in step with [DoseLine]'s 6 dp vertical padding and the 44 dp it passes to `DoseTakeButton`.
+ */
+private val DoseRowHeight = 56.dp
+
+/**
+ * The time gutter. The design asks for 54.dp, which fits the seven-character times it was drawn
+ * with ("8:00 AM") but clips the eight-character ones a 12-hour locale also produces ("10:00 PM").
+ * Sized for that worst case instead; a 24-hour locale ("22:00") never needs it.
+ */
+private val TimeGutterWidth = 64.dp
 
 private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
