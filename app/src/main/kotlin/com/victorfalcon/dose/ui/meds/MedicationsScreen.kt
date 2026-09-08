@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +39,7 @@ import com.victorfalcon.dose.ui.common.DoseCellState
 import com.victorfalcon.dose.ui.common.DoseFractionCell
 import com.victorfalcon.dose.ui.common.DoseStateCell
 import com.victorfalcon.dose.ui.common.MedIcon
+import com.victorfalcon.dose.ui.common.entryFadeSlide
 import com.victorfalcon.dose.ui.common.scheduleSummaryShort
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -59,8 +60,10 @@ fun MedicationsScreen(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(top = 4.dp, bottom = 96.dp),
     ) {
-        items(medications, key = { it.medication.id }) { row ->
-            MedicationCard(row, Modifier.animateItem()) { onOpenMedication(row.medication.id) }
+        itemsIndexed(medications, key = { _, row -> row.medication.id }) { index, row ->
+            MedicationCard(row, Modifier.animateItem().entryFadeSlide(index)) {
+                onOpenMedication(row.medication.id)
+            }
         }
     }
 }
@@ -124,25 +127,22 @@ private fun MedicationCard(row: MedRow, modifier: Modifier = Modifier, onClick: 
 }
 
 /**
- * The week, one column per day and one cell per dose. A once-a-day medication looks like a single
- * row of shapes; a three-times-a-day one stacks three, so "2 of 3 taken" is visible instead of
- * being rounded into a verdict.
+ * The week, one column per day at one fixed cell size. A day with a single dose shows that dose's
+ * shape; a day with several shows one shape filled to the fraction taken, with the count spelled
+ * out underneath — so "2 of 3 taken" reads without shrinking the cells, and every card ends up the
+ * same height whatever the schedule.
  */
 @Composable
 private fun WeekStrip(row: MedRow) {
     val today = remember { LocalDate.now() }
-    val cellSize = when (row.dosesPerDay) {
-        0, 1 -> 30.dp
-        2 -> 17.dp
-        3 -> 12.dp
-        else -> 28.dp // four or more: one proportional cell per day
-    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         row.week.forEach { day ->
             val isToday = day.date == today
+            val taken = day.cells.count { it == DoseCellState.TAKEN }
+            val failed = day.cells.any { it == DoseCellState.MISSED || it == DoseCellState.SKIPPED }
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,29 +155,27 @@ private fun WeekStrip(row: MedRow) {
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
                 )
-                if (row.dosesPerDay >= 4) {
-                    DoseFractionCell(
-                        taken = day.cells.count { it == DoseCellState.TAKEN },
-                        total = day.cells.size,
-                        failed = day.cells.any { it == DoseCellState.MISSED || it == DoseCellState.SKIPPED },
-                        size = cellSize,
+                when (day.cells.size) {
+                    0 -> DoseStateCell(DoseCellState.NONE, CellSize)
+                    1 -> DoseStateCell(day.cells.first(), CellSize)
+                    else -> DoseFractionCell(taken, day.cells.size, failed, CellSize)
+                }
+                if (row.dosesPerDay > 1) {
+                    Text(
+                        if (day.cells.isEmpty()) "·"
+                        else stringResource(R.string.med_week_count, taken, day.cells.size),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (failed) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        if (day.cells.isEmpty()) {
-                            DoseStateCell(DoseCellState.NONE, cellSize)
-                        } else {
-                            day.cells.forEach { DoseStateCell(it, cellSize) }
-                        }
-                    }
                 }
             }
         }
     }
 }
+
+/** One size for every medication, so cells stay legible and cards stay comparable. */
+private val CellSize = 30.dp
 
 @Composable
 private fun EmptyState(onAddMedication: () -> Unit) {
