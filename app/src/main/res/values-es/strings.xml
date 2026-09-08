@@ -21,15 +21,29 @@
     <string name="theme_dark">Oscuro</string>
     <string name="theme_system">Sistema</string>
     <string name="settings_dynamic_color">Color dinámico</string>
+    <string name="settings_support">Apoyar</string>
+    <string name="settings_support_title">Gratis, sin anuncios, sin rastreo.</string>
+    <string name="settings_support_body">Dose lo hace y lo mantiene una sola persona, en su tiempo libre. Los patrocinios son lo que la mantiene en marcha.</string>
+    <string name="settings_sponsor">Patrocinar en GitHub</string>
+    <string name="settings_sponsor_detail">github.com/sponsors/victor-falcon</string>
+    <string name="settings_follow">Seguir a @victoor</string>
+    <string name="settings_follow_detail">twitter.com/victoor</string>
     <string name="settings_snooze">Posposición predeterminada</string>
-    <string name="settings_permissions">Permisos</string>
-    <string name="settings_notification_settings">Ajustes de notificaciones</string>
-    <string name="settings_exact_alarm">Permiso de alarmas exactas</string>
-    <string name="unit_minutes">%1$d min</string>
-    <string name="settings_backup">Copia de seguridad</string>
-    <string name="action_export">Exportar</string>
+    <string name="settings_snooze_detail">Minutos que se retrasa una dosis</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_notifications_detail">Sonido, canales y No molestar</string>
+    <string name="settings_exact_alarm">Alarmas exactas</string>
+    <string name="settings_exact_alarm_detail">Para avisar de una dosis al minuto</string>
+    <string name="settings_exact_alarm_allowed">Permitidas</string>
+    <string name="settings_exact_alarm_allow">Permitir</string>
+    <string name="settings_data">Datos</string>
+    <string name="settings_export">Exportar una copia</string>
+    <string name="settings_export_detail">Medicamentos, pautas e historial, en un archivo JSON</string>
+    <string name="settings_import">Importar una copia</string>
+    <string name="settings_import_detail">Reemplaza todo lo que hay en este teléfono</string>
     <string name="action_import">Importar</string>
     <string name="import_confirm_message">Importar reemplaza todos los datos actuales por los de la copia. ¿Continuar?</string>
+    <string name="settings_footer">Dose %1$s · todo se queda en este teléfono</string>
 
     <!-- Gestión de medicamentos -->
     <string name="action_edit">Editar</string>
@@ -145,7 +159,6 @@
     <string name="notification_open">Abrir</string>
     <string name="settings_dynamic_color_detail">Usa el color del fondo de pantalla</string>
     <string name="settings_reminders">Recordatorios</string>
-    <string name="settings_backup_detail">Un único archivo JSON con medicamentos, pautas e historial.</string>
     <string name="widget_doses_count">%1$d tomas</string>
     <string name="widget_tap_hint">toca una para abrirla</string>
     <string name="today_nothing_pending">Nada pendiente hoy</string>

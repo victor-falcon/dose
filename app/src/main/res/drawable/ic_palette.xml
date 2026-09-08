@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Material "palette" icon, outlined. Tinted at usage. -->
+    <path
+        android:pathData="M21,12a9,9 0 1,1 -18,0a9,9 0 1,1 18,0"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M9.8,10.2a1.2,1.2 0 1,1 -2.4,0a1.2,1.2 0 1,1 2.4,0" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M13.2,7.9a1.2,1.2 0 1,1 -2.4,0a1.2,1.2 0 1,1 2.4,0" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M16.6,10.2a1.2,1.2 0 1,1 -2.4,0a1.2,1.2 0 1,1 2.4,0" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11.4,14.6a1.2,1.2 0 1,1 -2.4,0a1.2,1.2 0 1,1 2.4,0" />
+</vector>

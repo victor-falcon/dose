@@ -62,6 +62,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true // VERSION_NAME, shown in the Settings footer
     }
 
     testOptions {

@@ -148,7 +148,8 @@ fun DoseApp(focusOccurrenceId: Long? = null) {
                     }
                 }
             }
-            // Detail and focus own their app bars: both carry actions of their own.
+            // Detail, focus and settings own their app bars: the first two carry actions of
+            // their own, settings a large collapsing title.
             entry<MedDetail> { key ->
                 MedDetailScreen(
                     medicationId = key.medicationId,
@@ -165,12 +166,7 @@ fun DoseApp(focusOccurrenceId: Long? = null) {
                 )
             }
             entry<SettingsDest> {
-                DetailScaffold(
-                    titleRes = R.string.action_settings,
-                    onBack = { backStack.removeLastOrNull() },
-                ) { padding ->
-                    Contained(padding) { SettingsScreen() }
-                }
+                SettingsScreen(onBack = { backStack.removeLastOrNull() })
             }
         },
         modifier = Modifier.fillMaxSize(),
