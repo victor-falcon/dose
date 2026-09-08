@@ -8,6 +8,10 @@ Reference project (architecture inspiration): [unitto](https://github.com/sadell
 
 Website: [victorfalcon.es/dose](https://victorfalcon.es/dose)
 
+| Today | Medications | Medication |
+|---|---|---|
+| <img src="store/assets/phone1.png" width="260" alt="Today screen"> | <img src="store/assets/phone3.png" width="260" alt="Medications screen"> | <img src="store/assets/phone4.png" width="260" alt="Medication detail screen"> |
+
 ## Install
 
 [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/victor-falcon/dose)
