@@ -71,6 +71,7 @@ class ReminderReceiver : BroadcastReceiver() {
             ReminderStep.Done -> notifier.cancel(id)
             ReminderStep.Miss -> {
                 repository.setOccurrenceStatus(id, DoseStatus.MISSED, null)
+                scheduler.cancel(id) // also drops a snooze that ran out into a miss
                 notifier.cancel(id)
             }
             is ReminderStep.Notify -> {
@@ -105,20 +106,7 @@ class ReminderReceiver : BroadcastReceiver() {
         scheduler.cancel(id)
         notifier.cancel(id)
         // Keep the hour's grouped notification honest: refresh it, or drop it when done.
-        occurrence?.let { refreshGroup(it.scheduledAt) }
-    }
-
-    private suspend fun refreshGroup(scheduledAt: LocalDateTime) {
-        val hourMinutes = scheduledAt.toLocalTime().toSecondOfDay() / 60
-        val pending = pendingAt(scheduledAt)
-        when {
-            pending.isEmpty() -> notifier.cancelGroup(hourMinutes)
-            pending.size > 1 -> notifier.showGroup(
-                scheduledAt,
-                pending.map { it to repository.getMedication(it.medicationId) },
-            )
-            else -> notifier.cancelGroup(hourMinutes)
-        }
+        occurrence?.let { notifier.refreshGroup(it.scheduledAt) }
     }
 
     private suspend fun takeAll(hourMinutes: Int) {

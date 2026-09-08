@@ -56,7 +56,7 @@ data class DoseFocusUiState(
     val time: LocalTime? = null,
     /** The dose being asked for right now. `null` with a [queue] means the queue is done. */
     val current: DoseView? = null,
-    /** The queue as snapshotted when the screen opened — one dot each, length never shrinks. */
+    /** The queue snapshotted when the screen opened — one dot each, stable while it's open. */
     val queue: List<DoseView> = emptyList(),
     /** Where [current] sits in [queue]; past the end once everything is answered. */
     val currentIndex: Int = 0,
@@ -88,8 +88,10 @@ class DoseFocusViewModel @Inject constructor(
 
     private val occurrenceId = MutableStateFlow<Long?>(null)
 
-    /** Snoozed while this screen was open: keeps its dot, but the queue walks past it. */
-    private val snoozedHere = MutableStateFlow(emptySet<Long>())
+    // Snoozing changes nothing in the database, so nothing would re-emit on its own. The
+    // scheduler stays the one source of truth for "is this snoozed"; this only nudges the flow
+    // to read it again.
+    private val snoozeNudges = MutableStateFlow(0)
 
     val uiState: StateFlow<DoseFocusUiState> = occurrenceId.filterNotNull().flatMapLatest { id ->
         flow {
@@ -104,26 +106,27 @@ class DoseFocusViewModel @Inject constructor(
                 day.plusDays(1).atStartOfDay(),
                 activeOnly = true,
             )
-            // Fixed once: answering a dose must not shrink the dots under the user's finger.
-            // Doses snoozed before we opened never make it in.
+            // Fixed for as long as the screen stays open, so answering a dose doesn't shrink the
+            // dots under the user's finger. Doses already snoozed when we opened never make it in.
+            // Coming back after the screen has been away re-reads what is owed by then.
             val queueIds = dayDoses.first().let { doses ->
                 doseQueue(
                     doses = doses,
                     openedWith = id,
                     now = LocalDateTime.now(),
-                    snoozed = doses.map { it.occurrenceId }
-                        .filter { scheduler.snoozedUntil(it) != null }
-                        .toSet(),
+                    snoozed = doses.map { it.occurrenceId }.filter(::isSnoozed).toSet(),
                 )
             }
             // Notes belong to the medication, not the dose, so they're read once per medication.
             val notesByMedication = mutableMapOf<Long, String?>()
             emitAll(
-                combine(dayDoses, settings.settings, snoozedHere) { doses, prefs, snoozed ->
+                combine(dayDoses, settings.settings, snoozeNudges) { doses, prefs, _ ->
                     val byId = doses.associateBy { it.occurrenceId }
                     val queue = queueIds.mapNotNull { byId[it] }
+                    // A snoozed dose keeps its dot but drops out of the walk — wherever it was
+                    // snoozed from, and back in once the snooze runs out.
                     val remaining = queue.filter {
-                        it.status == DoseStatus.PENDING && it.occurrenceId !in snoozed
+                        it.status == DoseStatus.PENDING && !isSnoozed(it.occurrenceId)
                     }
                     val current = remaining.firstOrNull()
                     DoseFocusUiState(
@@ -160,10 +163,10 @@ class DoseFocusViewModel @Inject constructor(
         val doses = uiState.value.remaining
         viewModelScope.launch {
             val now = LocalDateTime.now()
-            doses.forEach {
-                repository.setOccurrenceStatus(it.occurrenceId, DoseStatus.TAKEN, now)
-                clearReminder(it)
-            }
+            doses.forEach { repository.setOccurrenceStatus(it.occurrenceId, DoseStatus.TAKEN, now) }
+            // Cleanup comes after the whole batch, so the hour's group isn't re-posted for a
+            // sibling that this same pass has already taken.
+            doses.forEach { clearReminder(it) }
         }
     }
 
@@ -172,7 +175,7 @@ class DoseFocusViewModel @Inject constructor(
             val minutes = settings.settings.first().defaultSnoozeMinutes
             scheduler.snooze(dose.occurrenceId, LocalDateTime.now().plusMinutes(minutes.toLong()))
             clearNotification(dose)
-            snoozedHere.update { it + dose.occurrenceId }
+            snoozeNudges.update { it + 1 }
         }
     }
 
@@ -183,14 +186,16 @@ class DoseFocusViewModel @Inject constructor(
         }
     }
 
+    private fun isSnoozed(occurrenceId: Long) = scheduler.snoozedUntil(occurrenceId) != null
+
     /** Answering a dose here has to leave as little behind as `ReminderReceiver.resolve` does. */
-    private fun clearReminder(dose: DoseView) {
+    private suspend fun clearReminder(dose: DoseView) {
         scheduler.cancel(dose.occurrenceId)
         clearNotification(dose)
     }
 
-    private fun clearNotification(dose: DoseView) {
+    private suspend fun clearNotification(dose: DoseView) {
         notifier.cancel(dose.occurrenceId)
-        notifier.cancelGroup(dose.scheduledAt.toLocalTime().toSecondOfDay() / 60)
+        notifier.refreshGroup(dose.scheduledAt)
     }
 }
