@@ -167,6 +167,8 @@ private fun WeekStrip(row: MedRow) {
                         style = MaterialTheme.typography.labelSmall,
                         color = if (failed) MaterialTheme.colorScheme.error
                         else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

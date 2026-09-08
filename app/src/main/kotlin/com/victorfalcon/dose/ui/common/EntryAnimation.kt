@@ -23,13 +23,16 @@ import kotlinx.coroutines.delay
  * in a lazy list everything below composes later, as it is scrolled into view, and animating there
  * would make scrolling flicker instead of feel alive. It bounds the entry too — a long list is in
  * after five steps, not fifteen.
+ *
+ * Items past that bound start out settled rather than skipping the modifier, so an item whose
+ * position shifts under it — a medication above it deleted, say — keeps its state instead of
+ * replaying its entrance from invisible.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Modifier.entryFadeSlide(index: Int): Modifier {
-    if (index >= StaggeredItems) return this
     val motion = MaterialTheme.motionScheme
-    var shown by remember { mutableStateOf(false) }
+    var shown by remember { mutableStateOf(index >= StaggeredItems) }
     val fade by animateFloatAsState(
         targetValue = if (shown) 1f else 0f,
         animationSpec = motion.defaultEffectsSpec(),
