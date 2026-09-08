@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -335,6 +336,7 @@ private fun TimesSection(
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            itemVerticalAlignment = Alignment.CenterVertically,
         ) {
             times.forEach { time ->
                 InputChip(
@@ -354,7 +356,7 @@ private fun TimesSection(
                 onClick = { showPicker = true },
                 shapes = ButtonDefaults.shapes(),
                 contentPadding = ButtonDefaults.ExtraSmallContentPadding,
-                modifier = Modifier.height(36.dp),
+                modifier = Modifier.heightIn(min = ButtonDefaults.ExtraSmallContainerHeight),
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
