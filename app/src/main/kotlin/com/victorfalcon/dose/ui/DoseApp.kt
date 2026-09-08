@@ -10,7 +10,6 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
@@ -106,14 +105,12 @@ fun DoseApp(focusOccurrenceId: Long? = null) {
         // the right; back always slides the current screen off to the right while the
         // previous one parallaxes in from the left with a quick fade — same direction
         // for both swipe edges. Predictive back seeks these by gesture progress, so
-        // the same specs drive the live drag. Bottom-nav tab switches keep the plain
-        // Navigation3 default crossfade instead of a directional slide.
+        // the same specs drive the live drag. Bottom-nav tab switches cross-dissolve in place
+        // instead: a tab switch replaces the whole stack, so the new tab is the only entry left,
+        // while every other forward navigation pushes on top of something. (The Scene's own key
+        // can't be compared to a NavKey — it's the entry's contentKey, derived from toString.)
         transitionSpec = {
-            if (isTopLevelKey(initialState.key) && isTopLevelKey(targetState.key)) {
-                tabTransition()
-            } else {
-                forwardTransition()
-            }
+            if (backStack.size == 1) tabTransition() else forwardTransition()
         },
         popTransitionSpec = { backTransition() },
         predictivePopTransitionSpec = { backTransition() },
@@ -304,22 +301,15 @@ private fun Contained(padding: PaddingValues, screen: @Composable () -> Unit) {
 private const val SLIDE_MS = 350
 private const val FADE_MS = 180
 private const val PARALLAX = 4 // the reveal-side screen moves width / PARALLAX
-// Material fade-through: the outgoing screen leaves first, then the new one arrives.
-private const val TAB_FADE_OUT_MS = 90
-private const val TAB_FADE_IN_MS = 220
+private const val TAB_FADE_MS = 200
 
-// Compares the keys themselves: comparing a NavKey to Today.toString() is never true, which
-// is what made tab switches animate like a forward push.
-private fun isTopLevelKey(key: Any?): Boolean = key == Today || key == Medications
-
-// Bottom-nav tab switch: Material fade-through. Tabs are siblings, not a push — the outgoing
-// screen fades out and the incoming one fades in with a slight grow, so nothing suggests a
-// screen you could come back from (pressing back here leaves the app).
+// Bottom-nav tab switch: a straight cross-dissolve. Tabs are siblings, so nothing slides or
+// scales — both screens carry the same bars in the same place, so only the title, the list and
+// the nav indicator dissolve and the chrome reads as if it never moved.
 private fun tabTransition(): ContentTransform =
     ContentTransform(
-        targetContentEnter = fadeIn(tween(TAB_FADE_IN_MS, delayMillis = TAB_FADE_OUT_MS)) +
-            scaleIn(tween(TAB_FADE_IN_MS, delayMillis = TAB_FADE_OUT_MS), initialScale = 0.94f),
-        initialContentExit = fadeOut(tween(TAB_FADE_OUT_MS)),
+        targetContentEnter = fadeIn(tween(TAB_FADE_MS)),
+        initialContentExit = fadeOut(tween(TAB_FADE_MS)),
     )
 
 // Forward: the new screen slides fully in from the right; the current one
