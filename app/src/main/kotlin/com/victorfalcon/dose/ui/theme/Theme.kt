@@ -86,8 +86,13 @@ private val DarkScheme = darkColorScheme(
 
 /**
  * Dose-state colors, deliberately outside the color scheme: "taken" is green whatever the
- * wallpaper says, so a filled dose shape always reads as a good outcome. Missed/skipped reuse
- * the scheme's error role.
+ * wallpaper says, so a filled dose shape always reads as a good outcome.
+ *
+ * On Today a dose row wears its state as a full-bleed band, so a state needs a whole set rather
+ * than one accent: the band, the icon tile that sits on it, the hairline between two rows of the
+ * same band, and a dimmer tone for the subtitle so name and detail aren't the same weight. That
+ * is also why "missed" gets its own soft band instead of the scheme's error role — errorContainer
+ * is tuned for a chip or a snackbar and screams across a whole row.
  */
 @Immutable
 data class DoseStateColors(
@@ -95,6 +100,13 @@ data class DoseStateColors(
     val onTaken: Color,
     val takenContainer: Color,
     val onTakenContainer: Color,
+    val onTakenContainerVariant: Color,
+    val takenTile: Color,
+    val takenDivider: Color,
+    val missedContainer: Color,
+    val onMissedContainer: Color,
+    val onMissedContainerVariant: Color,
+    val missedTile: Color,
 )
 
 private val LightDoseState = DoseStateColors(
@@ -102,6 +114,13 @@ private val LightDoseState = DoseStateColors(
     onTaken = Color.White,
     takenContainer = Color(0xFFD9EBD6),
     onTakenContainer = Color(0xFF12401A),
+    onTakenContainerVariant = Color(0xFF2E6134),
+    takenTile = Color(0xFFC4DEC2),
+    takenDivider = Color(0xFFCBE2C9),
+    missedContainer = Color(0xFFF9DEDC),
+    onMissedContainer = Color(0xFF601410),
+    onMissedContainerVariant = Color(0xFF8C2018),
+    missedTile = Color(0xFFF0C8C5),
 )
 
 private val DarkDoseState = DoseStateColors(
@@ -109,6 +128,16 @@ private val DarkDoseState = DoseStateColors(
     onTaken = Color.White,
     takenContainer = Color(0xFF21351F),
     onTakenContainer = Color(0xFFB6E5B4),
+    onTakenContainerVariant = Color(0xFF8FC98E),
+    takenTile = Color(0xFF2A4929),
+    takenDivider = Color(0xFF253F24),
+    // Built to sit next to the dark taken band at the same weight, not taken from the scheme's
+    // errorContainer (#8C1D18) — that saturated red reads as an alarm, and a missed dose is a
+    // note, not an emergency.
+    missedContainer = Color(0xFF3A1F1C),
+    onMissedContainer = Color(0xFFF2B8B5),
+    onMissedContainerVariant = Color(0xFFE39B96),
+    missedTile = Color(0xFF4A2724),
 )
 
 private val LocalDoseStateColors = staticCompositionLocalOf { LightDoseState }

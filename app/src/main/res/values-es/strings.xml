@@ -86,7 +86,6 @@
     <!-- Hoy -->
     <string name="today_rest_of_day">El resto del día</string>
     <string name="today_now">Ahora</string>
-    <string name="today_right_now">ahora mismo</string>
     <string name="today_in_minutes">en %1$d min</string>
     <string name="today_in_hours">en %1$d h</string>
     <string name="today_ago_minutes">hace %1$d min</string>

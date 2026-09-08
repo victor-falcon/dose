@@ -85,7 +85,6 @@
     <!-- Today -->
     <string name="today_rest_of_day">The rest of the day</string>
     <string name="today_now">Now</string>
-    <string name="today_right_now">right now</string>
     <string name="today_in_minutes">in %1$d min</string>
     <string name="today_in_hours">in %1$d h</string>
     <string name="today_ago_minutes">%1$d min ago</string>

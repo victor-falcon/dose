@@ -90,3 +90,46 @@ class TodayStateTest {
         assertEquals(true, todayState(emptyList(), emptyList()).isEmpty)
     }
 }
+
+/**
+ * What the hero card says beside "NOW · 3:30 PM". While the dose is actually due it says nothing:
+ * the time is already there, and a second label repeating it is noise.
+ */
+class DoseTimingTest {
+
+    private val due = LocalDateTime.of(2026, 7, 1, 15, 30)
+
+    /** Positive [minutesEarly] = the dose is still that far ahead; negative = it is that late. */
+    private fun timing(minutesEarly: Long) = doseTiming(due, due.minusMinutes(minutesEarly))
+
+    @Test fun `a dose due right now says nothing`() {
+        assertEquals(null, timing(0))
+    }
+
+    @Test fun `the minute either side of due still says nothing`() {
+        assertEquals(null, timing(1))
+        assertEquals(null, timing(-1))
+    }
+
+    @Test fun `two minutes out is the first thing worth saying`() {
+        assertEquals(DoseTiming(DoseTimingLabel.IN_MINUTES, 2), timing(2))
+        assertEquals(DoseTiming(DoseTimingLabel.MINUTES_AGO, 2), timing(-2))
+    }
+
+    @Test fun `still due counts up in minutes then hours`() {
+        assertEquals(DoseTiming(DoseTimingLabel.IN_MINUTES, 40), timing(40))
+        assertEquals(DoseTiming(DoseTimingLabel.IN_HOURS, 3), timing(180))
+    }
+
+    @Test fun `late counts up in minutes then hours`() {
+        assertEquals(DoseTiming(DoseTimingLabel.MINUTES_AGO, 12), timing(-12))
+        assertEquals(DoseTiming(DoseTimingLabel.HOURS_AGO, 2), timing(-120))
+    }
+
+    @Test fun `only the past tense wordings count as late`() {
+        assertEquals(false, timing(40)!!.label.late)
+        assertEquals(false, timing(180)!!.label.late)
+        assertEquals(true, timing(-12)!!.label.late)
+        assertEquals(true, timing(-120)!!.label.late)
+    }
+}

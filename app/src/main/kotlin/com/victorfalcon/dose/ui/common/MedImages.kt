@@ -38,7 +38,7 @@ fun medImageRes(key: String?): Int = when (key) {
 
 /**
  * Rounded tile showing a medication's pill shape: a tinted silhouette on the primary container,
- * with the corner scaled to the tile so a 38 dp row icon and an 80 dp header icon read the same.
+ * with the corner scaled to the tile so a 40 dp row icon and an 80 dp header icon read the same.
  * Pass [size] = null to let the caller size the tile via [modifier].
  */
 @Composable

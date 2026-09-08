@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -109,6 +110,10 @@ fun DoseStateCell(state: DoseCellState, size: Dp, modifier: Modifier = Modifier)
  *
  * [emphasized] is the hero/primary version (filled primary, invites the tap); the plain version
  * is tonal, for rows where the dose isn't the one due right now.
+ *
+ * [untakenContainer]/[untakenContent] only matter before the dose lands: a row tints them to its
+ * own band so a missed or skipped dose — which can still be taken late, so it keeps its button —
+ * doesn't look like a pending button pasted on top of the wrong colour.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -118,8 +123,11 @@ fun DoseTakeButton(
     modifier: Modifier = Modifier,
     size: Dp = 52.dp,
     emphasized: Boolean = false,
+    untakenContainer: Color =
+        if (emphasized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+    untakenContent: Color =
+        if (emphasized) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer,
 ) {
-    val scheme = MaterialTheme.colorScheme
     val dose = doseStateColors
     val motion = MaterialTheme.motionScheme
     // The tap flips a local state first, so the shape morph and the turn start on *this* button
@@ -132,7 +140,6 @@ fun DoseTakeButton(
         label = "doseSpin",
     )
     val stateLabel = stringResource(if (checked) R.string.dose_taken else R.string.dose_pending)
-    val ringColor = if (emphasized) scheme.onPrimary else scheme.onPrimaryContainer
     FilledIconToggleButton(
         checked = checked,
         onCheckedChange = {
@@ -145,8 +152,8 @@ fun DoseTakeButton(
             checkedShape = DoseShapes.taken,
         ),
         colors = IconButtonDefaults.filledIconToggleButtonColors(
-            containerColor = if (emphasized) scheme.primary else scheme.primaryContainer,
-            contentColor = if (emphasized) scheme.onPrimary else scheme.onPrimaryContainer,
+            containerColor = untakenContainer,
+            contentColor = untakenContent,
             checkedContainerColor = dose.taken,
             checkedContentColor = dose.onTaken,
         ),
@@ -173,11 +180,12 @@ fun DoseTakeButton(
                     modifier = Modifier.size(size * 0.42f),
                 )
             } else {
-                // Hollow ring: this dose is still owed.
+                // Hollow ring: this dose is still owed. Thick enough to hold its own against the
+                // filled shapes around it — any thinner and it reads as washed out.
                 Box(
                     Modifier
                         .size(size * 0.34f)
-                        .border((size.value * 0.045f).dp, ringColor, CircleRing),
+                        .border((size.value * 0.05f).dp, untakenContent, CircleRing),
                 )
             }
         }
