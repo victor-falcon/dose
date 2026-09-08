@@ -21,16 +21,32 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_system">System</string>
-    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color">Dynamic colour</string>
+    <string name="settings_support">Support</string>
+    <string name="settings_support_title">Free, no ads, no tracking.</string>
+    <string name="settings_support_body">One person builds and maintains Dose, in their spare time. Sponsoring is what keeps it going.</string>
+    <string name="settings_sponsor">Sponsor on GitHub</string>
+    <string name="settings_sponsor_detail">github.com/sponsors/victor-falcon</string>
+    <string name="settings_follow">Follow @victoor</string>
+    <string name="settings_follow_detail">x.com/victoor</string>
     <string name="settings_snooze">Default snooze</string>
-    <string name="settings_permissions">Permissions</string>
-    <string name="settings_notification_settings">Notification settings</string>
-    <string name="settings_exact_alarm">Exact alarm permission</string>
-    <string name="unit_minutes">%1$d min</string>
-    <string name="settings_backup">Backup</string>
-    <string name="action_export">Export</string>
+    <string name="settings_snooze_detail">Minutes a dose is pushed forward</string>
+    <!-- Spoken label for the bare-number snooze chips -->
+    <string name="settings_snooze_minutes">%1$d minutes</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_detail">Sound, channels and Do Not Disturb</string>
+    <string name="settings_exact_alarm">Exact alarms</string>
+    <string name="settings_exact_alarm_detail">So a dose is notified on the minute</string>
+    <string name="settings_exact_alarm_allowed">Allowed</string>
+    <string name="settings_exact_alarm_allow">Allow</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_export">Export a backup</string>
+    <string name="settings_export_detail">Medications, schedules and history, one JSON file</string>
+    <string name="settings_import">Import a backup</string>
+    <string name="settings_import_detail">Replaces everything on this phone</string>
     <string name="action_import">Import</string>
     <string name="import_confirm_message">Importing replaces all current data with the backup. Continue?</string>
+    <string name="settings_footer">Dose %1$s · everything stays on this phone</string>
 
     <!-- Medication management -->
     <string name="action_edit">Edit</string>
@@ -142,9 +158,8 @@
     <string name="notification_group_title">%1$d doses at %2$s</string>
     <string name="notification_take_all">Take all %1$d</string>
     <string name="notification_open">Open</string>
-    <string name="settings_dynamic_color_detail">Use the colors from your wallpaper</string>
+    <string name="settings_dynamic_color_detail">Use the colours from your wallpaper</string>
     <string name="settings_reminders">Reminders</string>
-    <string name="settings_backup_detail">One JSON file with medications, schedules and history.</string>
     <string name="widget_doses_count">%1$d doses</string>
     <string name="widget_tap_hint">tap one to open it</string>
     <string name="today_nothing_pending">Nothing left today</string>
