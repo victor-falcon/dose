@@ -19,5 +19,6 @@ kls_database.db
 /gradlew.bat
 gradle/wrapper/gradle-wrapper.jar
 
-# Screenshots dropped at the repo root
+# Screenshots and screen recordings dropped at the repo root
 /*.png
+/*.mp4
