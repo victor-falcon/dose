@@ -63,7 +63,7 @@ class ReminderReceiver : BroadcastReceiver() {
     private suspend fun handleFire(id: Long) {
         val occurrence = repository.getOccurrence(id) ?: return
         // A snooze outranks this alarm: stay quiet and come back when it runs out.
-        scheduler.snoozedUntil(id)?.let {
+        occurrence.snoozedUntil?.takeIf { it.isAfter(LocalDateTime.now()) }?.let {
             scheduler.schedule(id, it)
             return
         }
@@ -71,7 +71,7 @@ class ReminderReceiver : BroadcastReceiver() {
             ReminderStep.Done -> notifier.cancel(id)
             ReminderStep.Miss -> {
                 repository.setOccurrenceStatus(id, DoseStatus.MISSED, null)
-                scheduler.cancel(id) // also drops a snooze that ran out into a miss
+                scheduler.cancel(id)
                 notifier.cancel(id)
             }
             is ReminderStep.Notify -> {

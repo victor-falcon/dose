@@ -9,7 +9,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,11 +19,6 @@ class AlarmScheduler @Inject constructor(
     private val repository: MedicationRepository,
 ) {
     private val alarmManager = context.getSystemService(AlarmManager::class.java)
-
-    // Snoozes live here rather than in the database: DoseStatus has no SNOOZED, and adding a
-    // column would need a real Migration(2, 3) — today's Room config would wipe the user's
-    // medications instead. Cost of that shortcut: a snooze is lost when the process dies.
-    private val snoozes = ConcurrentHashMap<Long, LocalDateTime>()
 
     fun schedule(occurrenceId: Long, at: LocalDateTime) {
         val triggerAtMillis = at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
@@ -39,20 +33,13 @@ class AlarmScheduler @Inject constructor(
         }
     }
 
-    /** Push a dose's reminder back and remember it, so [syncUpcoming] stops dragging it forward. */
-    fun snooze(occurrenceId: Long, until: LocalDateTime) {
-        snoozes[occurrenceId] = until
+    /** Push a dose's reminder back to [until] and record it, so [syncUpcoming] respects it. */
+    suspend fun snooze(occurrenceId: Long, until: LocalDateTime) {
+        repository.snoozeOccurrence(occurrenceId, until)
         schedule(occurrenceId, until)
     }
 
-    /** When a dose is snoozed until, or `null` once that moment has passed. */
-    fun snoozedUntil(occurrenceId: Long): LocalDateTime? =
-        snoozes[occurrenceId]?.takeIf { it.isAfter(LocalDateTime.now()) }
-
-    fun cancel(occurrenceId: Long) {
-        snoozes.remove(occurrenceId)
-        alarmManager.cancel(firePendingIntent(occurrenceId))
-    }
+    fun cancel(occurrenceId: Long) = alarmManager.cancel(firePendingIntent(occurrenceId))
 
     /** Arm an exact alarm at next local midnight so the widget rolls over to the new day
      *  even with no user interaction. The receiver re-arms it for the following night. */
@@ -76,7 +63,7 @@ class AlarmScheduler @Inject constructor(
     /** Re-arm alarms for every pending dose within the window; overdue ones fire ~now. */
     suspend fun syncUpcoming(now: LocalDateTime = LocalDateTime.now()) {
         val pending = repository.getPendingOccurrencesUntil(now.plusHours(Reminders.WINDOW_HOURS))
-        pending.forEach { schedule(it.id, maxOf(snoozedUntil(it.id) ?: it.scheduledAt, now)) }
+        pending.forEach { schedule(it.id, maxOf(it.snoozedUntil ?: it.scheduledAt, now)) }
     }
 
     private fun firePendingIntent(occurrenceId: Long): PendingIntent {

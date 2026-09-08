@@ -7,10 +7,11 @@ import com.victorfalcon.dose.domain.model.DoseOccurrence
 import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.domain.model.Schedule
 
-// exportSchema = false: no migrations before v1 ships; revisit when the schema is public.
+// exportSchema = false: no schema JSON to diff against, so every version bump from here on
+// needs its migration hand-written in DatabaseModule.
 @Database(
     entities = [Medication::class, Schedule::class, DoseOccurrence::class],
-    version = 2, // v2: Medication.image
+    version = 3, // v2: Medication.image; v3: DoseOccurrence.snoozedUntil
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

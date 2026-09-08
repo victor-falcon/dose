@@ -18,7 +18,12 @@ class DoseFocusQueueTest {
     private val creatine = 1L
     private val adiro = 2L
 
-    private fun dose(id: Long, hour: Int, status: DoseStatus = DoseStatus.PENDING) = DoseView(
+    private fun dose(
+        id: Long,
+        hour: Int,
+        status: DoseStatus = DoseStatus.PENDING,
+        snoozedUntil: LocalDateTime? = null,
+    ) = DoseView(
         occurrenceId = id,
         medicationId = id,
         name = "Med $id",
@@ -26,6 +31,7 @@ class DoseFocusQueueTest {
         scheduledAt = LocalDateTime.of(day, LocalTime.of(hour, 0)),
         status = status,
         takenAt = null,
+        snoozedUntil = snoozedUntil,
     )
 
     private fun at(hour: Int) = LocalDateTime.of(day, LocalTime.of(hour, 0))
@@ -50,15 +56,24 @@ class DoseFocusQueueTest {
         assertEquals(listOf(adiro, creatine), queue)
     }
 
-    @Test fun `a snoozed dose stays out of the queue`() {
+    @Test fun `a dose snoozed into the future stays out of the queue`() {
         val queue = doseQueue(
-            doses = listOf(dose(creatine, 11), dose(adiro, 13)),
+            doses = listOf(dose(creatine, 11, snoozedUntil = at(14)), dose(adiro, 13)),
             openedWith = adiro,
             now = at(13),
-            snoozed = setOf(creatine),
         )
 
         assertEquals(listOf(adiro), queue)
+    }
+
+    @Test fun `a dose whose snooze has run out is owed again`() {
+        val queue = doseQueue(
+            doses = listOf(dose(creatine, 11, snoozedUntil = at(12)), dose(adiro, 13)),
+            openedWith = adiro,
+            now = at(13),
+        )
+
+        assertEquals(listOf(adiro, creatine), queue)
     }
 
     @Test fun `already resolved doses never enter the queue`() {

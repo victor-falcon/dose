@@ -8,6 +8,7 @@ import com.victorfalcon.dose.domain.model.Medication
 import com.victorfalcon.dose.data.SettingsRepository
 import com.victorfalcon.dose.domain.repository.MedicationRepository
 import com.victorfalcon.dose.reminder.AlarmScheduler
+import com.victorfalcon.dose.reminder.NotificationHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -94,6 +95,7 @@ class TodayViewModel @Inject constructor(
     private val repository: MedicationRepository,
     private val settings: SettingsRepository,
     private val scheduler: AlarmScheduler,
+    private val notifier: NotificationHelper,
 ) : ViewModel() {
 
     // ponytail: window fixed at VM creation; left open past midnight it won't roll over
@@ -121,6 +123,7 @@ class TodayViewModel @Inject constructor(
         viewModelScope.launch {
             val minutes = settings.settings.first().defaultSnoozeMinutes
             scheduler.snooze(occurrenceId, LocalDateTime.now().plusMinutes(minutes.toLong()))
+            notifier.cancel(occurrenceId)
         }
     }
 
