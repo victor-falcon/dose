@@ -31,8 +31,12 @@ android {
         applicationId = "es.victorfalcon.dose"
         minSdk = 31
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.0.0"
+        // Releases come from git tags: pushing v1.1.0 makes CI build with -PappVersion=1.1.0.
+        // Local builds keep 0.0.1 so they're never mistaken for a release.
+        val appVersion = (findProperty("appVersion") as String?) ?: "0.0.1"
+        val (major, minor, patch) = appVersion.split(".").map(String::toInt)
+        versionCode = major * 10000 + minor * 100 + patch
+        versionName = appVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

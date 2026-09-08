@@ -16,7 +16,8 @@ Website: [victorfalcon.es/dose](https://victorfalcon.es/dose)
 
 [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/victor-falcon/dose)
 
-Every push to `main` builds a signed APK and publishes it as a GitHub release,
+Pushing a `v*` tag (e.g. `git tag v1.1.0 && git push origin v1.1.0`) builds a
+signed APK and publishes it as a GitHub release with a changelog,
 so Obtainium tracks this repo and auto-updates. App ID: `es.victorfalcon.dose`.
 
 ## Architecture decisions
