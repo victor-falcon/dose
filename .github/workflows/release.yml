@@ -2,8 +2,7 @@ name: Release APK
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    tags: ['v*']
 
 permissions:
   contents: write
@@ -35,17 +34,17 @@ jobs:
           DOSE_STORE_PASSWORD: ${{ secrets.DOSE_STORE_PASSWORD }}
           DOSE_KEY_ALIAS: ${{ secrets.DOSE_KEY_ALIAS }}
           DOSE_KEY_PASSWORD: ${{ secrets.DOSE_KEY_PASSWORD }}
-        run: gradle :app:assembleRelease
+        run: gradle :app:assembleRelease -PappVersion="${GITHUB_REF_NAME#v}"
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
-          tag="v$version-${{ github.run_number }}"
           # Fixed asset name: /releases/latest/download/dose.apk is a permalink only if
-          # the file name never changes. The tag still carries the version for Obtainium.
+          # the file name never changes. The tag carries the version for Obtainium.
           mv app/build/outputs/apk/release/app-release.apk dose.apk
           sha=$(sha256sum dose.apk | cut -d' ' -f1)
-          printf '%s\n' "Built from ${{ github.sha }}" "" 'SHA-256 (`dose.apk`):' '```' "$sha" '```' > notes.md
-          gh release create "$tag" dose.apk --title "$tag" --notes-file notes.md
+          notes=$(printf '%s\n' "Built from $GITHUB_SHA" "" 'SHA-256 (`dose.apk`):' '```' "$sha" '```')
+          # --generate-notes appends the changelog since the previous tag.
+          gh release create "$GITHUB_REF_NAME" dose.apk --title "$GITHUB_REF_NAME" \
+            --notes "$notes" --generate-notes --verify-tag
