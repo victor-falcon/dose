@@ -33,7 +33,7 @@ data class MedRow(
     val takenThisWeek: Int,
     val dosesThisWeek: Int,
 ) {
-    /** The busiest day drives the cell size, so every day in the strip lines up. */
+    /** The busiest day: above a single dose, the strip spells out each day's taken/total. */
     val dosesPerDay: Int get() = week.maxOfOrNull { it.cells.size } ?: 0
 }
 

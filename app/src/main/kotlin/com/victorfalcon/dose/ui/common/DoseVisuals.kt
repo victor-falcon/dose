@@ -195,9 +195,9 @@ fun DoseTakeButton(
 private val CircleRing = RoundedCornerShape(50)
 
 /**
- * Fallback cell for medications with four or more doses a day, where separate cells stop being
- * legible: one shape per day, filled bottom-up to the fraction taken. The empty part is
- * error-tinted once a dose has actually been failed rather than merely still pending.
+ * A day of several doses as a single shape, filled bottom-up to the fraction taken — separate
+ * cells per dose stop being legible well before a busy schedule runs out of room. The empty part
+ * is error-tinted once a dose has actually been failed rather than merely still pending.
  */
 @Composable
 fun DoseFractionCell(
